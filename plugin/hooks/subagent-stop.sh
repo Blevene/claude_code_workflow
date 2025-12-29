@@ -1,0 +1,78 @@
+#!/bin/bash
+# SubagentStop Hook - Captures agent output and creates task handoffs
+# Triggered by: when any subagent completes
+set -e
+
+# Read input from stdin
+INPUT=$(cat)
+AGENT_NAME=$(echo "$INPUT" | jq -r '.agent_name // "unknown"')
+AGENT_OUTPUT=$(echo "$INPUT" | jq -r '.output // ""')
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
+TASK_ID=$(echo "$INPUT" | jq -r '.task_id // ""')
+
+# Paths
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+HANDOFF_DIR="$PROJECT_DIR/thoughts/shared/handoffs/$SESSION_ID"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+mkdir -p "$HANDOFF_DIR"
+
+# Create task handoff for the agent's work
+create_task_handoff() {
+    local handoff_file="$HANDOFF_DIR/task-${AGENT_NAME}-$TIMESTAMP.md"
+    
+    cat > "$handoff_file" << EOF
+---
+type: task-handoff
+agent: $AGENT_NAME
+session_id: $SESSION_ID
+task_id: $TASK_ID
+created: $(date -Iseconds)
+---
+
+# Task Handoff: $AGENT_NAME
+
+## Agent: @$AGENT_NAME
+Completed: $(date)
+Task ID: $TASK_ID
+
+## Summary
+
+$AGENT_OUTPUT
+
+## For Next Agent
+
+The above work was completed by @$AGENT_NAME.
+Review the changes and continue with the next task.
+
+### Files Modified
+
+Check \`.claude/cache/session-$SESSION_ID-files.txt\` for recent file activity.
+
+### Continuation Points
+
+- Review changes made by this agent
+- Run tests to verify: \`/tdd verify\`
+- Check traceability: \`python tools/traceability_tools.py check-gaps\`
+
+EOF
+
+    echo "$handoff_file"
+}
+
+# Only create handoffs for our FAANG agents
+case "$AGENT_NAME" in
+    pm|planner|architect|ux|frontend|backend|qa|overseer|orchestrator)
+        HANDOFF_FILE=$(create_task_handoff)
+        jq -n --arg agent "$AGENT_NAME" --arg handoff "$HANDOFF_FILE" '{
+            "continue": true,
+            "hookSpecificOutput": {
+                "additionalContext": ("✅ @" + $agent + " completed. Task handoff: " + $handoff)
+            }
+        }'
+        ;;
+    *)
+        # Unknown agent, just continue
+        jq -n '{"continue": true}'
+        ;;
+esac

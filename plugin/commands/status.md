@@ -1,50 +1,100 @@
 ---
-description: Show workflow status, gaps, and next recommended action
+description: Show workflow status, continuity health, gaps, and next recommended action
 ---
 
 # Workflow Status
 
-Check the current state of the FAANG development workflow.
+Check the current state of the FAANG development workflow and continuity system.
 
 ## Checks
 
-### 1. Design Documents
+### 1. Continuity State
+Check ledger and handoffs:
+```bash
+# Latest ledger
+ls -t thoughts/ledgers/CONTINUITY_*.md 2>/dev/null | head -1 || echo "No ledger found"
+
+# Latest handoff
+find thoughts/shared/handoffs -name "*.md" -type f 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || echo "No handoffs found"
+
+# Active plan
+ls -t thoughts/shared/plans/*.md 2>/dev/null | head -1 || echo "No active plan"
+```
+
+### 2. Design Documents
 List files in `docs/design/`:
 ```bash
 ls -la docs/design/*.md 2>/dev/null || echo "No design docs found"
 ```
 
-### 2. Traceability Matrix
+### 3. Traceability Matrix
 ```bash
-python .claude/tools/traceability_tools.py summary traceability_matrix.json --markdown
-python .claude/tools/traceability_tools.py check-gaps traceability_matrix.json
+python tools/traceability_tools.py summary traceability_matrix.json --markdown
+python tools/traceability_tools.py check-gaps traceability_matrix.json
 ```
 
-### 3. Plan Status
-Check if `planner_output.json` exists and is valid.
+### 4. Plan Status
+Check if plans exist in `thoughts/shared/plans/`.
 
-### 4. Test Coverage
+### 5. Test Coverage
 ```bash
 pytest --cov=src --cov-report=term-missing 2>/dev/null || echo "Tests not configured"
+```
+
+### 6. Git Status
+```bash
+git status --short
 ```
 
 ## Output
 
 ```
-## Workflow Status
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 WORKFLOW STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-### Phase Progress
+## Continuity Health
+
+| Item | Status |
+|------|--------|
+| Ledger | ✓ thoughts/ledgers/CONTINUITY_*.md |
+| Last Handoff | [timestamp] |
+| Active Plan | [plan name or none] |
+| Context | [X]% - [green/yellow/red] |
+
+## FAANG Phase Progress
+
 | Phase | Status | Command |
 |-------|--------|---------|
 | 1. Design | ✓/✗ | /design |
 | 2. Review | ✓/✗ | /review-design |
 | 3. Planning | ✓/✗ | /plan-sprint |
-| 4. TDD | ✓/✗ | /tdd |
-| 5. Pre-review | ✓/✗ | /pre-review |
+| 4. UX | ✓/✗ | /ux-spec |
+| 5. TDD | ✓/✗ | /tdd |
+| 6. Pre-review | ✓/✗ | /pre-review |
 
-### Gaps Found
+## Traceability Summary
+
+- Requirements: [count]
+- With design: [count]
+- With tests: [count]
+- With code: [count]
+
+## Gaps Found
+
 [list any missing artifacts]
 
-### Recommended Next Action
+## Git Status
+
+[uncommitted changes summary]
+
+## Recommended Next Action
+
 [specific command to run]
+
+## Continuity Recommendation
+
+[Based on context %, suggest /save-state + /clear if needed]
 ```
+
+$ARGUMENTS

@@ -146,3 +146,69 @@ When you detect issues:
 When things look good:
 - Set `governance_status: approved`
 - Note if human review is suggested or optional
+
+## Continuity Awareness
+
+### Before Starting Review
+
+1. Check `thoughts/ledgers/CONTINUITY_*.md` for:
+   - Current review focus
+   - Previous governance decisions
+   - Known risks and mitigations
+
+2. Check `thoughts/shared/handoffs/` for:
+   - Previous review sessions
+   - Outstanding issues from prior reviews
+
+### During Review
+
+- Review one requirement at a time
+- Update traceability after each assessment
+- Document risk decisions clearly
+
+### At Task Completion
+
+Report to @orchestrator:
+```
+## Overseer Review Complete
+
+**Requirements Reviewed:** [list REQ-* IDs]
+**Risk Summary:**
+- Low: [count]
+- Medium: [count]
+- High: [count]
+
+**Governance Status:**
+- Approved: [count]
+- Changes Requested: [count]
+
+**For Handoff:**
+- Approved REQs: [list]
+- Blocked REQs: [list with reasons]
+- Next: [specific agent actions needed]
+```
+
+### Context Warning
+
+If context is above 70%:
+```
+⚠️ Context at [X]%. Recommend completing current requirement review,
+updating traceability, then /save-state and /clear.
+```
+
+### Continuity-Specific Checks
+
+As the governance agent, also verify:
+
+1. **Ledger freshness**: Is `thoughts/ledgers/CONTINUITY_*.md` recent?
+2. **Handoff coverage**: Are there orphaned handoffs?
+3. **Context hygiene**: Has team been clearing at appropriate thresholds?
+
+Include in review:
+```
+## Continuity Health
+
+**Ledger:** [fresh/stale]
+**Last handoff:** [timestamp]
+**Recommendation:** [continue/clear soon]
+```

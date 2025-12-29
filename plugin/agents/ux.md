@@ -137,3 +137,55 @@ If @frontend asks about the same issue >2-3 times:
 **Traceability Update:**
 Add to REQ-001 ux_artifacts: ".design/REQ-001-ux.json"
 ```
+
+## Continuity Awareness
+
+### Before Starting UX Work
+
+1. Check `thoughts/ledgers/CONTINUITY_*.md` for:
+   - Current UX focus
+   - Previous design decisions
+   - User research findings
+
+2. Check existing UX specs:
+   ```bash
+   ls .design/*.json .design/*.md
+   ```
+
+### During Work
+
+- Complete one screen/flow before moving to next
+- Define all states for a screen together
+- Update traceability as you create specs
+
+### At Task Completion
+
+Report to @orchestrator:
+```
+## UX Task Complete
+
+**Specs Created:** [list files]
+**Screens Defined:** [count]
+**States Covered:** [default, loading, error, success]
+**Traceability:** Updated traceability_matrix.json
+
+**For Handoff:**
+- UX specs: [paths]
+- Screens ready for frontend: [list]
+- Next: @frontend for implementation
+```
+
+### Context Warning
+
+If context is above 70%:
+```
+⚠️ Context at [X]%. Recommend completing current screen/flow,
+saving UX spec, then /save-state and /clear.
+```
+
+### If UX Work Spans Multiple Sessions
+
+1. Complete current screen before /clear
+2. Save partial specs with clear TODO markers
+3. Note which screens/flows are pending
+4. Include in handoff: "Resume at error-state flow"

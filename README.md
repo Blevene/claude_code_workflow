@@ -1,15 +1,37 @@
 # Claude Code Workflow
 
-A Claude Code configuration that enforces enterprise-grade, test-driven development through a coordinated multi-agent team. Built for teams that want FAANG-level engineering discipline without the bureaucracy.
+**FAANG-style TDD workflow + Session continuity = Agents that don't degrade.**
+
+A Claude Code configuration that enforces enterprise-grade, test-driven development through a coordinated multi-agent team, with session continuity to prevent context degradation.
+
+CONTINUITY INSPIRED BY https://github.com/parcadei/Continuous-Claude-v2
 
 ## What This Does
 
-This plugin adds **9 specialized AI agents** and **8 slash commands** to Claude Code that enforce:
+This plugin adds **9 specialized AI agents**, **11 slash commands**, and a **continuity system** to Claude Code that enforce:
 
 - **Design-first development** - No code without architecture docs
 - **Test-driven development (TDD)** - Tests written BEFORE implementation
 - **Full traceability** - Requirements → Design → Code → Tests all linked
 - **Governance checkpoints** - Risk assessment at each phase
+- **Session continuity** - Ledgers and handoffs prevent agent degradation
+
+## The Problem This Solves
+
+When Claude Code runs low on context, it compacts (summarizes) the conversation. Each compaction is lossy:
+
+```
+Session Start: Full context, high signal
+    ↓ work, work, work
+Compaction 1: Some detail lost
+    ↓ work, work, work  
+Compaction 2: Context getting murky
+    ↓ work, work, work
+Compaction 3: Now working with compressed noise
+    ↓ Agents start hallucinating context
+```
+
+**The Solution: Clear, don't compact.** Save state to a ledger, wipe context with `/clear`, resume fresh.
 
 ## Quick Start
 
@@ -17,6 +39,7 @@ This plugin adds **9 specialized AI agents** and **8 slash commands** to Claude 
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) v2.0+ installed
 - macOS, Linux, or WSL
+- `jq` installed (`brew install jq` or `apt install jq`)
 
 ### Installation
 
@@ -33,7 +56,14 @@ mkdir -p ~/.claude/plugins
 cp -r claude_code_workflow/plugin ~/.claude/plugins/claude_code_workflow
 ```
 
-**3. Create a shell alias (required for persistence):**
+**3. Make hooks executable:**
+
+```bash
+chmod +x ~/.claude/plugins/claude_code_workflow/hooks/*.sh
+chmod +x ~/.claude/plugins/claude_code_workflow/scripts/*.sh
+```
+
+**4. Create a shell alias (required for persistence):**
 
 Add this line to your `~/.zshrc` (or `~/.bashrc` for bash):
 
@@ -41,23 +71,47 @@ Add this line to your `~/.zshrc` (or `~/.bashrc` for bash):
 alias claude='claude --plugin-dir ~/.claude/plugins/claude_code_workflow'
 ```
 
-**4. Reload your shell:**
+**5. Reload your shell:**
 
 ```bash
 source ~/.zshrc
 ```
 
-**5. Verify installation:**
+**6. Verify installation:**
 
 ```bash
 claude
 ```
 
-Then type `/help` - you should see the claude_code_workflow commands listed.
+Then type `/help` - you should see the workflow commands listed.
 
 > **Why the alias?** There's a [known bug](https://github.com/anthropics/claude-code/issues/12457) in Claude Code v2.x where locally installed plugins don't persist between sessions. The alias ensures your plugin loads every time.
 
+### Initialize a Project
+
+For each project, run the init script:
+
+```bash
+~/.claude/plugins/claude_code_workflow/scripts/init-project.sh
+```
+
+This creates:
+- `thoughts/ledgers/` - Continuity ledgers
+- `thoughts/shared/handoffs/` - Session handoffs
+- `thoughts/shared/plans/` - Implementation plans
+- `traceability_matrix.json` - Requirement tracking
+
 ## Commands
+
+### Continuity Commands (NEW in v2)
+
+| Command | Description |
+|---------|-------------|
+| `/save-state` | Update continuity ledger before `/clear` |
+| `/handoff` | Create detailed session handoff for later |
+| `/resume` | Load and review latest handoff |
+
+### FAANG Workflow Commands
 
 | Command | Description |
 |---------|-------------|
@@ -67,7 +121,7 @@ Then type `/help` - you should see the claude_code_workflow commands listed.
 | `/review-design` | Validate design document completeness and assess risk level |
 | `/plan-sprint` | Generate atomic task breakdown with TDD task pairing |
 | `/pre-review` | Run pre-submission validation (lint, tests, debug code detection) |
-| `/status` | Show workflow progress, gaps, and recommended next action |
+| `/status` | Show workflow progress, continuity health, gaps, and recommended next action |
 | `/ux-spec <REQ-ID>` | Create UX specification with screens, states, and interactions |
 
 ## Agents
@@ -76,7 +130,7 @@ Invoke agents with `@agent-name` in your conversation:
 
 | Agent | Role |
 |-------|------|
-| `@orchestrator` | Routes work between agents, prevents infinite loops, enforces phase gates |
+| `@orchestrator` | Routes work between agents, manages continuity, prevents infinite loops |
 | `@pm` | Owns EARS requirements, priorities, and acceptance criteria |
 | `@planner` | Decomposes work into atomic tasks with TDD pairing |
 | `@architect` | Creates design docs, API contracts, and architecture diagrams |
@@ -84,13 +138,58 @@ Invoke agents with `@agent-name` in your conversation:
 | `@frontend` | Implements UI (AFTER tests exist) |
 | `@backend` | Implements APIs and business logic (AFTER tests exist) |
 | `@qa` | **Writes tests FIRST** - the TDD enforcer |
-| `@overseer` | Governance, drift detection, and risk assessment |
+| `@overseer` | Governance, drift detection, risk assessment, and continuity health |
+
+All agents are **continuity-aware** - they check ledgers before starting, warn about context thresholds, and produce handoff-ready summaries.
+
+## Continuity System
+
+### The Problem
+
+Context compaction degrades agent quality. After 2-3 compactions, agents hallucinate context.
+
+### The Solution
+
+```
+Work → Context fills → /save-state → /clear → Ledger auto-loads → Continue
+```
+
+### Context Thresholds
+
+| Level | Action |
+|-------|--------|
+| **< 60%** | Normal work |
+| **60-70%** | Plan handoff points |
+| **70-80%** | Complete task, `/save-state`, `/clear` soon |
+| **> 80%** | STOP - `/save-state` then `/clear` NOW |
+
+### Hooks
+
+| Hook | When | What It Does |
+|------|------|--------------|
+| **SessionStart** | `/clear`, startup | Loads ledger + latest handoff into context |
+| **PreCompact** | Before compaction | Creates auto-handoff, blocks manual compact |
+| **UserPromptSubmit** | Every message | Shows context warnings, skill hints |
+| **PostToolUse** | After file edits | Tracks modified files |
+| **SubagentStop** | Agent completes | Creates task handoff |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `thoughts/ledgers/CONTINUITY_*.md` | Session state (survives `/clear`) |
+| `thoughts/shared/handoffs/*.md` | Detailed session transfers |
+| `thoughts/shared/plans/*.md` | Implementation plans |
+| `traceability_matrix.json` | Requirement tracking |
 
 ## Workflow Example
 
 ```bash
 # Start Claude with the plugin
 claude
+
+# Initialize project (first time)
+> # Run init-project.sh externally first
 
 # 1. Process a PRD into requirements and design
 > /prd requirements/user-auth.md
@@ -107,11 +206,19 @@ claude
 # 5. Implement with TDD (tests first!)
 > /tdd auth/login
 
+# Context at 75% - save state before it degrades
+> /save-state
+> /clear
+
+# Fresh context, ledger auto-loaded - continue
+> /status
+> /tdd auth/validation
+
 # 6. Pre-submission checks before PR
 > /pre-review
 
-# 7. Check overall status anytime
-> /status
+# End of session
+> /handoff
 ```
 
 ## Core Principles
@@ -152,7 +259,17 @@ REQ-001 (requirement)
   └── tests/auth/test_login.py (tests)
 ```
 
-### 4. EARS Requirements
+### 4. Clear, Don't Compact
+
+When context fills up, save state and `/clear` instead of letting compaction degrade your agents:
+
+```
+/save-state    # Updates ledger
+/clear         # Fresh context
+               # SessionStart hook loads ledger + handoff automatically
+```
+
+### 5. EARS Requirements
 
 Requirements use the EARS (Easy Approach to Requirements Syntax) format:
 
@@ -167,37 +284,36 @@ Requirements use the EARS (Easy Approach to Requirements Syntax) format:
 
 ```
 claude_code_workflow/
-├── .claude-plugin/
-│   └── plugin.json          # Plugin manifest (required)
-├── commands/                 # Slash commands
-│   ├── design.md
-│   ├── tdd.md
-│   ├── prd.md
-│   ├── review-design.md
-│   ├── plan-sprint.md
-│   ├── pre-review.md
-│   ├── status.md
-│   └── ux-spec.md
-├── agents/                   # Subagents
-│   ├── orchestrator.md
-│   ├── pm.md
-│   ├── planner.md
-│   ├── architect.md
-│   ├── ux.md
-│   ├── frontend.md
-│   ├── backend.md
-│   ├── qa.md
-│   └── overseer.md
-├── skills/                   # Auto-triggered skills
-│   └── claude_code_workflow/
-│       └── SKILL.md
-├── tools/                    # Python utilities
-│   ├── traceability_tools.py
-│   ├── planner_tools.py
-│   └── ...
-├── schemas/                  # JSON validation schemas
-│   ├── traceability_matrix_schema.json
-│   └── planner_task_schema.json
+├── plugin/
+│   ├── .claude-plugin/
+│   │   ├── plugin.json       # Plugin manifest
+│   │   └── settings.json     # Hook registrations
+│   ├── hooks/                # Lifecycle hooks
+│   │   ├── session-start.sh
+│   │   ├── pre-compact.sh
+│   │   ├── user-prompt-submit.sh
+│   │   ├── post-tool-use.sh
+│   │   └── subagent-stop.sh
+│   ├── scripts/
+│   │   ├── init-project.sh   # Project initialization
+│   │   └── status.sh         # Status line
+│   ├── commands/             # Slash commands
+│   │   ├── save-state.md     # NEW: Update ledger
+│   │   ├── handoff.md        # NEW: Session transfer
+│   │   ├── resume.md         # NEW: Load handoff
+│   │   ├── design.md
+│   │   ├── tdd.md
+│   │   └── ...
+│   ├── agents/               # Subagents (continuity-aware)
+│   │   ├── orchestrator.md
+│   │   ├── qa.md
+│   │   └── ...
+│   ├── skills/
+│   │   └── faang-workflow/
+│   │       └── SKILL.md
+│   ├── tools/                # Python utilities
+│   │   └── traceability_tools.py
+│   └── schemas/              # JSON validation schemas
 └── README.md
 ```
 
@@ -257,14 +373,26 @@ You are the **Agent Name** - your role description.
 1. First responsibility
 2. Second responsibility
 
-## How You Work
+## Continuity Awareness
 
-Details on how this agent operates...
+### Before Starting
+1. Check thoughts/ledgers/CONTINUITY_*.md
+2. Check thoughts/shared/handoffs/
+
+### At Task Completion
+Report to @orchestrator with handoff-ready summary.
 ```
 
-### Modifying Existing Commands/Agents
+### Modifying Hooks
 
-Simply edit the markdown files. Changes take effect on the next Claude Code session.
+Hooks are bash scripts in `hooks/`. They receive JSON on stdin and output JSON:
+
+```bash
+#!/bin/bash
+INPUT=$(cat)
+# Process input...
+echo '{"continue": true}'
+```
 
 ## Troubleshooting
 
@@ -275,50 +403,46 @@ Simply edit the markdown files. Changes take effect on the next Claude Code sess
    alias | grep claude
    ```
 
-2. Make sure you're using the alias (not running `claude` directly from another path)
-
-3. Check plugin structure:
+2. Check plugin structure:
    ```bash
    ls -la ~/.claude/plugins/claude_code_workflow/.claude-plugin/
-   # Should show plugin.json
    ```
 
-### "Unknown slash command" error
+### Hooks not running
 
-The plugin isn't loading. Try:
+1. Make them executable:
+   ```bash
+   chmod +x ~/.claude/plugins/claude_code_workflow/hooks/*.sh
+   ```
 
-```bash
-claude --plugin-dir ~/.claude/plugins/claude_code_workflow
-```
+2. Verify `jq` is installed:
+   ```bash
+   jq --version
+   ```
 
-If that works, your alias isn't set correctly.
+### Ledger not loading after /clear
 
-### Agents not responding to @mentions
+1. Verify ledger exists:
+   ```bash
+   ls thoughts/ledgers/CONTINUITY_*.md
+   ```
 
-1. Check `/agents` to see if they're listed
-2. Verify agent files have correct frontmatter with `name:` field
-
-### Plugin loads but commands fail
-
-Check the command markdown files have the required frontmatter:
-
-```markdown
----
-description: This field is required
----
-```
+2. Test hook manually:
+   ```bash
+   echo '{"source":"clear"}' | ./hooks/session-start.sh
+   ```
 
 ## Known Issues
 
 - **Plugin persistence bug**: Plugins installed via `/plugin install` don't persist between sessions. Use the alias workaround.
-- **Slash command discovery**: Some versions of Claude Code v2.x have issues discovering commands from `.claude/commands/`. The plugin approach works around this.
+- **Hook latency**: Some hooks (especially SessionEnd) may add 1-3 seconds as they finalize state.
 
 ## Contributing
 
 1. Fork this repository
 2. Create a feature branch
 3. Make your changes
-4. Test with `claude --plugin-dir /path/to/your/fork`
+4. Test with `claude --plugin-dir /path/to/your/fork/plugin`
 5. Submit a pull request
 
 ## License
@@ -327,5 +451,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- Built for use with [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by Anthropic
-- Inspired by FAANG engineering practices and the [EARS requirements methodology](https://alistairmavin.com/ears/)
+- [Continuous-Claude-v2](https://github.com/parcadei/Continuous-Claude-v2) - Continuity patterns and inspiration
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by Anthropic
+- FAANG engineering practices
+- [EARS requirements methodology](https://alistairmavin.com/ears/)

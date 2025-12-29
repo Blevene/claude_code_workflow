@@ -172,3 +172,45 @@ Add to REQ-001 tests: ["tests/auth/test_login.py"]
 - Minimum: 80% line coverage
 - Critical paths: 95%
 - Every REQ must have at least one test
+
+## Continuity Awareness
+
+### Before Starting Test Writing
+
+1. Check `thoughts/ledgers/CONTINUITY_*.md` for:
+   - Which requirements are being tested
+   - Previous test decisions
+   - Any blocked items
+
+2. Check `thoughts/shared/handoffs/` for:
+   - Previous QA work in progress
+   - Partial test coverage
+
+### During Work
+
+- Reference REQ-* IDs in test docstrings
+- Update traceability after each test file
+
+### At Task Completion
+
+Report to @orchestrator:
+```
+## QA Task Complete
+
+**Tests Created:** [list files]
+**REQ Coverage:** [which requirements]
+**TDD Status:** RED (awaiting implementation)
+**Traceability:** Updated traceability_matrix.json
+
+**For Handoff:**
+- Test files: [paths]
+- Next: @backend/@frontend implement to pass tests
+```
+
+### Context Warning
+
+If context is above 70%, suggest:
+```
+⚠️ Context at [X]%. Recommend completing current test file,
+then /save-state and /clear before writing more tests.
+```

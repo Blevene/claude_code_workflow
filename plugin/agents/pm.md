@@ -91,3 +91,40 @@ When requirements change:
 1. Update the requirement entry in `traceability_matrix.json`
 2. Notify @planner if tasks need adjustment
 3. Notify @qa if acceptance criteria changed
+
+## Continuity Awareness
+
+### Before Starting Requirements Work
+
+1. Check `thoughts/ledgers/CONTINUITY_*.md` for:
+   - Current requirements focus
+   - Previous priority decisions
+   - Stakeholder constraints
+
+2. Check `thoughts/shared/handoffs/` for:
+   - Partial requirement definitions
+   - Previous PM sessions
+
+### At Task Completion
+
+Report to @orchestrator:
+```
+## PM Task Complete
+
+**Requirements Defined:** [list REQ-* IDs]
+**Priorities Set:** [high/medium/low counts]
+**Traceability:** Updated traceability_matrix.json
+
+**For Handoff:**
+- New requirements: [list]
+- Priority changes: [list]
+- Next: @architect for design, @planner for tasks
+```
+
+### Context Warning
+
+If context is above 70%:
+```
+⚠️ Context at [X]%. Recommend completing current requirement
+definitions, updating traceability, then /save-state and /clear.
+```

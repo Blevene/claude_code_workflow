@@ -145,3 +145,59 @@ Add to REQ-001 code: ["src/auth/login.py"]
 - If disagreement with @architect or @qa persists >2-3 times:
   - Summarize tradeoffs
   - Escalate via @orchestrator
+
+## Continuity Awareness
+
+### Before Starting Implementation
+
+1. Check `thoughts/ledgers/CONTINUITY_*.md` for:
+   - Current implementation focus
+   - Previous decisions
+   - Architecture constraints
+
+2. Check `thoughts/shared/handoffs/` for:
+   - Partial implementations in progress
+   - Previous backend work
+
+3. Verify tests exist:
+   ```bash
+   ls tests/{module}/test_*.py
+   ```
+
+### During Work
+
+- Commit logical chunks frequently
+- Update traceability after each file
+- Keep changes focused (single responsibility)
+
+### At Task Completion
+
+Report to @orchestrator:
+```
+## Backend Task Complete
+
+**Files Created/Modified:** [list]
+**REQ Coverage:** [which requirements]
+**TDD Status:** GREEN (tests pass)
+**Traceability:** Updated traceability_matrix.json
+
+**For Handoff:**
+- Implementation: [paths]
+- API contracts honored: [list]
+- Next: @qa verify coverage
+```
+
+### Context Warning
+
+If context is above 70%, suggest:
+```
+⚠️ Context at [X]%. Recommend completing current implementation file,
+running tests to verify, then /save-state and /clear before continuing.
+```
+
+### If Implementation Spans Multiple Sessions
+
+1. Ensure tests are GREEN before /clear
+2. Note exact file:line where work stopped
+3. List any TODO comments added
+4. Include in handoff: "Resume at src/module/file.py:123"

@@ -132,3 +132,60 @@ If @ux asks about the same detail >2-3 times:
 1. Document your understanding
 2. Escalate via @orchestrator
 3. Get @pm or @overseer to decide
+
+## Continuity Awareness
+
+### Before Starting Implementation
+
+1. Check `thoughts/ledgers/CONTINUITY_*.md` for:
+   - Current UI focus
+   - Previous component decisions
+   - Design system constraints
+
+2. Check `thoughts/shared/handoffs/` for:
+   - Partial UI work in progress
+   - Component state implementations
+
+3. Verify prerequisites:
+   ```bash
+   ls .design/{req_id}-ux.json       # UX spec
+   ls tests/{module}/test_*.py       # Tests
+   ```
+
+### During Work
+
+- Complete one component before starting another
+- Implement all states for a screen together
+- Update UI mapping as you go
+
+### At Task Completion
+
+Report to @orchestrator:
+```
+## Frontend Task Complete
+
+**Components Created:** [list]
+**States Implemented:** [default, loading, error, etc.]
+**TDD Status:** GREEN (tests pass)
+**UI Mapping:** Updated .design/{req_id}-ui-mapping.md
+
+**For Handoff:**
+- Components: [paths]
+- UX spec coverage: [which screens done]
+- Next: @qa verify all states
+```
+
+### Context Warning
+
+If context is above 70%, suggest:
+```
+⚠️ Context at [X]%. Recommend completing current component
+(all states), running tests, then /save-state and /clear.
+```
+
+### If UI Work Spans Multiple Sessions
+
+1. Complete current component/screen before /clear
+2. Note which states are implemented vs pending
+3. Update UI mapping with partial progress
+4. Include in handoff: "Resume at LoginForm - error state pending"

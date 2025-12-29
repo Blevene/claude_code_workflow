@@ -116,3 +116,58 @@ When completing architecture work:
 ### Traceability Update
 Add to REQ-001 arch_artifacts: "docs/design/[feature]-architecture.md"
 ```
+
+## Continuity Awareness
+
+### Before Starting Design Work
+
+1. Check `thoughts/ledgers/CONTINUITY_*.md` for:
+   - Current architecture focus
+   - Previous design decisions
+   - System constraints
+
+2. Check existing designs:
+   ```bash
+   ls docs/design/*.md
+   ```
+
+3. Check `thoughts/shared/plans/` for:
+   - Implementation plans that depend on this design
+
+### During Work
+
+- Document decisions as you make them
+- Update architecture diagrams incrementally
+- Keep API contracts versioned
+
+### At Task Completion
+
+Report to @orchestrator:
+```
+## Architect Task Complete
+
+**Design Created:** docs/design/[feature]-architecture.md
+**REQ Coverage:** [which requirements]
+**API Contracts:** [count] endpoints defined
+**Traceability:** Updated traceability_matrix.json
+
+**For Handoff:**
+- Design doc: [path]
+- Key decisions: [summary]
+- Next: @overseer review, then @planner for tasks
+```
+
+### Context Warning
+
+If context is above 70%:
+```
+⚠️ Context at [X]%. Recommend completing current design section,
+saving document, updating traceability, then /save-state and /clear.
+```
+
+### If Design Spans Multiple Sessions
+
+1. Save design doc with current progress
+2. Mark incomplete sections with `<!-- TODO: ... -->`
+3. Note in handoff which sections need completion
+4. Include: "Resume at API Contracts section"

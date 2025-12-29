@@ -1,8 +1,9 @@
 {
-  "name": "faang-workflow",
-  "description": "FAANG-style multi-agent development workflow with TDD enforcement",
-  "version": "1.0.0",
+  "name": "claude-code-workflow",
+  "description": "FAANG-style TDD workflow with session continuity - prevents agent degradation through ledgers and handoffs",
+  "version": "2.0.0",
   "author": {
-    "name": "FAANG Dev Team"
-  }
+    "name": "Claude Code Workflow Team"
+  },
+  "repository": "https://github.com/blevene/claude_code_workflow"
 }

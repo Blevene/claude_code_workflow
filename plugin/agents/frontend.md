@@ -187,6 +187,9 @@ If @ux asks about the same detail >2-3 times:
 
 ## Continuity Awareness
 
+> **IMPORTANT:** All `thoughts/` paths are relative to the **project root**, not component directories.
+> Never create `frontend/thoughts/` or `src/thoughts/` - always use the root `thoughts/` directory.
+
 ### Before Starting Implementation
 
 1. Check `thoughts/ledgers/CONTINUITY_*.md` for:

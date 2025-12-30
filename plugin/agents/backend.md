@@ -205,6 +205,9 @@ Add to REQ-001 code: ["src/auth/login.py"]
 
 ## Continuity Awareness
 
+> **IMPORTANT:** All `thoughts/` paths are relative to the **project root**, not component directories.
+> Never create `backend/thoughts/` or `src/thoughts/` - always use the root `thoughts/` directory.
+
 ### Before Starting Implementation
 
 1. Check `thoughts/ledgers/CONTINUITY_*.md` for:

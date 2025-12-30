@@ -25,6 +25,9 @@ You are the **Orchestrator** - the routing brain for the multi-agent dev team.
 
 ## Continuity Management (CRITICAL)
 
+> **IMPORTANT:** All `thoughts/` paths are relative to the **project root**.
+> Never create thoughts in component subdirectories (e.g., `frontend/thoughts/`, `src/thoughts/`).
+
 ### Context Degradation Prevention
 
 Agents lose quality after context compaction. To prevent:

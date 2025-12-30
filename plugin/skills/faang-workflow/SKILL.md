@@ -82,6 +82,8 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 
 ### Key Files
 
+> **IMPORTANT:** All paths below are relative to the **project root**, never in subdirectories.
+
 | File | Purpose |
 |------|---------|
 | `thoughts/ledgers/CONTINUITY_*.md` | Session state (survives /clear) |

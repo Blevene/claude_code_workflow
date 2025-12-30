@@ -387,6 +387,8 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 
 ### Key Files
 
+> **IMPORTANT:** All `thoughts/` paths must be at the **project root**, never in subdirectories like `frontend/thoughts/` or `src/thoughts/`.
+
 | File | Purpose |
 |------|---------|
 | `thoughts/ledgers/CONTINUITY_*.md` | Session state (survives `/clear`) |

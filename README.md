@@ -141,20 +141,44 @@ chmod +x plugin/hooks/*.sh
 chmod +x plugin/scripts/*.sh
 ```
 
-**3. Run Claude Code with the plugin:**
+**3. Install the plugin (choose one method):**
+
+#### Option A: Permanent Install (Recommended)
+
+Copy the plugin to Claude's plugin directory:
+
+```bash
+# Create plugins directory if it doesn't exist
+mkdir -p ~/.claude/plugins
+
+# Copy plugin
+cp -r plugin ~/.claude/plugins/claude-code-workflow
+
+# Now just run claude normally - plugin loads automatically
+claude
+```
+
+Or use a symlink (easier to update via git pull):
+
+```bash
+mkdir -p ~/.claude/plugins
+ln -s "$(pwd)/plugin" ~/.claude/plugins/claude-code-workflow
+```
+
+#### Option B: Per-Session (for testing/development)
 
 ```bash
 claude --plugin-dir ./plugin
 ```
 
-**4. (Optional) Create a shell alias:**
+Or create a shell alias:
 
 ```bash
 # Add to ~/.zshrc or ~/.bashrc
 alias claude-faang='claude --plugin-dir /path/to/claude_code_workflow/plugin'
 ```
 
-**5. Verify installation:**
+**4. Verify installation:**
 
 Type `/help` - you should see commands under the `claude-code-workflow` namespace.
 
@@ -190,8 +214,8 @@ This creates:
 Here's a typical session using the FAANG workflow:
 
 ```bash
-# Start Claude with the plugin
-claude --plugin-dir ./plugin
+# Start Claude (if installed permanently, just run 'claude')
+claude
 
 # 0. Initialize project (first time only)
 > /init
@@ -581,12 +605,15 @@ Step-by-step instructions...
 
 ### Commands not appearing
 
-   ```bash
-# Verify plugin is loaded
-claude --plugin-dir ./plugin
+```bash
+# If using permanent install, check plugin exists
+ls ~/.claude/plugins/claude-code-workflow
+
+# If using --plugin-dir, verify path is correct
+claude --plugin-dir /path/to/plugin
 
 # Type /help and look for claude-code-workflow namespace
-   ```
+```
 
 ### Hooks not running
 
@@ -633,7 +660,7 @@ echo '{"source":"clear"}' | plugin/hooks/session-start.sh
 1. Fork this repository
 2. Create a feature branch
 3. Make your changes
-4. Test with `claude --plugin-dir /path/to/your/fork/plugin`
+4. Test with `claude --plugin-dir /path/to/your/fork/plugin` (or symlink to `~/.claude/plugins/`)
 5. Submit a pull request
 
 ---

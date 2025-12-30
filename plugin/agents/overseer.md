@@ -123,7 +123,7 @@ Check for mismatches between:
 
 **Suggested Tools:**
 ```bash
-uv run python .claude/tools/traceability_tools.py check-gaps traceability_matrix.json
+uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
 ```
 ```
 

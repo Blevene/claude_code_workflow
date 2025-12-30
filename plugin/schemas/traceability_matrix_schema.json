@@ -9,10 +9,17 @@
   "properties": {
     "meta": {
       "type": "object",
+      "description": "Optional metadata about the matrix",
       "properties": {
         "version": {
           "type": "integer",
           "minimum": 1
+        },
+        "project": {
+          "type": "string"
+        },
+        "created": {
+          "type": "string"
         },
         "description": {
           "type": "string"
@@ -30,10 +37,13 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^REQ-[0-9]+$",
+            "description": "Requirement ID (e.g., REQ-001)"
           },
           "story_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional user story ID (e.g., US-1)"
           },
           "type": {
             "type": "string",
@@ -65,37 +75,62 @@
             "default": "proposed"
           },
           "ears": {
-            "type": "string"
+            "type": "string",
+            "description": "EARS-format requirement statement"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "description": "Risk assessment from @overseer"
+          },
+          "governance_status": {
+            "type": "string",
+            "enum": [
+              "not_reviewed",
+              "approved",
+              "changes_requested"
+            ],
+            "default": "not_reviewed",
+            "description": "Governance review status from @overseer"
           },
           "tasks": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Task IDs implementing this requirement (e.g., T-001)"
           },
           "ux_artifacts": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "UX spec file paths (e.g., .design/REQ-001-ux.json)"
           },
           "arch_artifacts": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Architecture doc paths (e.g., docs/design/auth.md)"
           },
           "code": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Implementation file paths"
           },
           "tests": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Test file paths"
           },
           "notes": {
             "type": "array",
@@ -108,5 +143,5 @@
       }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }

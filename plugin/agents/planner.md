@@ -19,7 +19,7 @@ You are the **Planner** - you turn goals into structured, actionable tasks.
 
 ## Plan JSON Structure
 
-Output must conform to `.claude/schemas/planner_task_schema.json`:
+Output must conform to `schemas/planner_task_schema.json` (in plugin directory):
 
 ```json
 {
@@ -93,9 +93,10 @@ T-002: Implement X (owner: backend/frontend, depends_on: T-001)
 
 ## Validation
 
-After creating/updating plan, suggest:
+After creating/updating plan, validate:
 ```bash
-uv run python .claude/tools/planner_tools.py validate planner_output.json
+# If planner_tools.py is in path or plugin tools/ directory
+uv run python tools/planner_tools.py validate thoughts/shared/plans/plan-[feature].json
 ```
 
 ## Output Rules

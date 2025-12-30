@@ -31,9 +31,11 @@ find_latest_handoff() {
     fi
 }
 
-# Find active plan
+# Find active plan (check both .json and .md formats)
 find_active_plan() {
     if [ -d "$PLANS_DIR" ]; then
+        # Prefer JSON plans, fall back to markdown
+        ls -t "$PLANS_DIR"/*.json 2>/dev/null | head -1 || \
         ls -t "$PLANS_DIR"/*.md 2>/dev/null | head -1
     fi
 }

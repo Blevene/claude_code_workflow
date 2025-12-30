@@ -17,7 +17,8 @@ ls -t thoughts/ledgers/CONTINUITY_*.md 2>/dev/null | head -1 || echo "No ledger 
 # Latest handoff
 find thoughts/shared/handoffs -name "*.md" -type f 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || echo "No handoffs found"
 
-# Active plan
+# Active plan (check JSON first, then markdown)
+ls -t thoughts/shared/plans/*.json 2>/dev/null | head -1 || \
 ls -t thoughts/shared/plans/*.md 2>/dev/null | head -1 || echo "No active plan"
 ```
 

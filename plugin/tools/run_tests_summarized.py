@@ -2,7 +2,7 @@
 """Run tests and emit a compact JSON summary.
 
 Usage:
-    uv run python .claude/tools/run_tests_summarized.py --cmd "uv run pytest tests/" --tail 40
+    uv run python tools/run_tests_summarized.py --cmd "uv run pytest tests/" --tail 40
 
 IMPORTANT: Always use 'uv run' for all Python execution to ensure code runs
 in the correct virtual environment with synced dependencies.

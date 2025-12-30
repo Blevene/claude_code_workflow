@@ -86,7 +86,7 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 |------|---------|
 | `thoughts/ledgers/CONTINUITY_*.md` | Session state (survives /clear) |
 | `thoughts/shared/handoffs/*.md` | Detailed session transfers |
-| `thoughts/shared/plans/*.md` | Implementation plans |
+| `thoughts/shared/plans/*.json` | Implementation plans |
 | `traceability_matrix.json` | Requirement tracking |
 
 ## Enforcement

@@ -23,7 +23,7 @@ Find design doc in `docs/design/` or use: $ARGUMENTS
 
 ### 2. Create Task Breakdown
 
-Create `planner_output.json`:
+Create `thoughts/shared/plans/plan-[feature].json` (and copy to `planner_output.json` in root):
 
 ```json
 {

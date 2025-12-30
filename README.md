@@ -391,7 +391,7 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 |------|---------|
 | `thoughts/ledgers/CONTINUITY_*.md` | Session state (survives `/clear`) |
 | `thoughts/shared/handoffs/*.md` | Detailed session transfers |
-| `thoughts/shared/plans/*.md` | Implementation plans |
+| `thoughts/shared/plans/*.json` | Implementation plans |
 | `traceability_matrix.json` | Requirement tracking |
 
 ---
@@ -448,7 +448,7 @@ uv run python tools/traceability_tools.py summary traceability_matrix.json --mar
 uv run python tools/run_tests_summarized.py --cmd "uv run pytest tests/" --tail 40
 
 # Plan validation
-uv run python tools/planner_tools.py validate planner_output.json
+uv run python tools/planner_tools.py validate thoughts/shared/plans/plan-[feature].json
 ```
 
 ---
@@ -512,11 +512,9 @@ claude_code_workflow/
 │   │   └── status.sh            # Status line
 │   │
 │   ├── tools/                    # Python utilities
-│   │   ├── traceability_tools.py
-│   │   ├── planner_tools.py
-│   │   ├── run_tests_summarized.py
-│   │   ├── repo_map.py
-│   │   └── ...
+│   │   ├── traceability_tools.py # Requirement tracking
+│   │   ├── planner_tools.py      # Plan validation
+│   │   └── run_tests_summarized.py # Test runner
 │   │
 │   └── schemas/
 │       ├── planner_task_schema.json

@@ -198,7 +198,7 @@ Add tests to `tests` array in `traceability_matrix.json`:
 
 Use the test runner with uv:
 ```bash
-uv run python .claude/tools/run_tests_summarized.py --cmd "uv run pytest tests/" --tail 40
+uv run python tools/run_tests_summarized.py --cmd "uv run pytest tests/" --tail 40
 ```
 
 Or run directly:

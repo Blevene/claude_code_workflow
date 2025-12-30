@@ -67,10 +67,14 @@ uv sync
 ### 3. Create Traceability Matrix
 
 ```bash
-cat > traceability_matrix.json << 'EOF'
+cat > traceability_matrix.json << EOF
 {
-  "version": "1.0",
-  "created": "$(date -Iseconds)",
+  "meta": {
+    "version": 1,
+    "project": "$(basename $(pwd))",
+    "created": "$(date -Iseconds)",
+    "description": "Traceability matrix linking EARS requirements to tasks, design, code, and tests."
+  },
   "requirements": []
 }
 EOF

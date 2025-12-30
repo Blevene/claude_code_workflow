@@ -5,7 +5,9 @@ import argparse, json
 from pathlib import Path
 from typing import Any, Dict, List
 
-SCHEMA_PATH = Path(".claude") / "schemas" / "planner_task_schema.json"
+# Schema is in the same directory as this tool (plugin/tools/../schemas/)
+TOOL_DIR = Path(__file__).parent
+SCHEMA_PATH = TOOL_DIR.parent / "schemas" / "planner_task_schema.json"
 
 def load_json_with_heuristics(path: Path) -> Any:
     text = path.read_text(encoding="utf-8").strip()

@@ -45,6 +45,10 @@ echo "✓ .claude/cache/"
 mkdir -p docs/design
 echo "✓ docs/design/"
 
+# UX specs directory
+mkdir -p .design
+echo "✓ .design/"
+
 # Tests directory (for TDD)
 mkdir -p tests
 echo "✓ tests/"
@@ -116,38 +120,19 @@ fi
 
 # Create initial traceability matrix
 if [ ! -f traceability_matrix.json ]; then
-    cat > traceability_matrix.json << 'EOF'
-{
-  "metadata": {
-    "project": "PROJECT_NAME",
-    "created": "DATE",
-    "version": "1.0.0"
-  },
-  "requirements": [],
-  "traceability": {
-    "requirements_to_design": {},
-    "requirements_to_tasks": {},
-    "requirements_to_tests": {},
-    "requirements_to_code": {}
-  },
-  "coverage_summary": {
-    "total_requirements": 0,
-    "requirements_with_design": 0,
-    "requirements_with_tests": 0,
-    "requirements_with_code": 0
-  }
-}
-EOF
-    # Update with project name and date
     PROJECT_NAME=$(basename "$(pwd)")
     DATE=$(date -Iseconds)
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s/PROJECT_NAME/$PROJECT_NAME/g" traceability_matrix.json
-        sed -i '' "s/DATE/$DATE/g" traceability_matrix.json
-    else
-        sed -i "s/PROJECT_NAME/$PROJECT_NAME/g" traceability_matrix.json
-        sed -i "s/DATE/$DATE/g" traceability_matrix.json
-    fi
+    cat > traceability_matrix.json << EOF
+{
+  "meta": {
+    "version": 1,
+    "project": "$PROJECT_NAME",
+    "created": "$DATE",
+    "description": "Traceability matrix linking EARS requirements to tasks, design, code, and tests."
+  },
+  "requirements": []
+}
+EOF
     echo "✓ traceability_matrix.json"
 else
     echo "• traceability_matrix.json (already exists)"

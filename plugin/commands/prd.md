@@ -28,7 +28,11 @@ Add requirements to `traceability_matrix.json`:
   "priority": "high",
   "status": "proposed",
   "ears": "WHEN [trigger] THEN the system SHALL [response].",
+  "risk_level": null,
+  "governance_status": "not_reviewed",
   "tasks": [],
+  "ux_artifacts": [],
+  "arch_artifacts": [],
   "code": [],
   "tests": []
 }
@@ -40,9 +44,11 @@ Create `docs/design/[feature]-design.md` with architecture, APIs, data model.
 
 ### 4. Create Task Breakdown
 
-Create `planner_output.json` with TDD task pairs:
+Create `thoughts/shared/plans/plan-[feature].json` with TDD task pairs:
 - Test task (owner: qa) BEFORE implementation task
 - Implementation task depends on test task
+
+Also create a copy at `planner_output.json` in root for quick access.
 
 ### 5. Output Summary
 

@@ -1,20 +1,55 @@
 # Claude Code Workflow
 
-**FAANG-style TDD workflow + Session continuity = Agents that don't degrade.**
+**FAANG-style TDD workflow + Session continuity + Auto-invoked skills = Agents that don't degrade.**
 
-A Claude Code configuration that enforces enterprise-grade, test-driven development through a coordinated multi-agent team, with session continuity to prevent context degradation.
+A Claude Code plugin that enforces enterprise-grade, test-driven development through a coordinated multi-agent team, with session continuity to prevent context degradation.
 
-CONTINUITY INSPIRED BY https://github.com/parcadei/Continuous-Claude-v2
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/blevene/claude_code_workflow)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+---
+
+## Table of Contents
+
+- [What This Does](#what-this-does)
+- [The Problem This Solves](#the-problem-this-solves)
+- [Core Principles](#core-principles)
+- [Quick Start](#quick-start)
+- [Workflow Example](#workflow-example)
+- [Commands](#commands)
+- [Agents](#agents)
+- [Skills](#skills)
+- [Continuity System](#continuity-system)
+- [Python Environment](#python-environment)
+- [Tools](#tools)
+- [Directory Structure](#directory-structure)
+- [Customization](#customization)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+
+---
 
 ## What This Does
 
-This plugin adds **9 specialized AI agents**, **11 slash commands**, and a **continuity system** to Claude Code that enforce:
+This plugin adds to Claude Code:
 
-- **Design-first development** - No code without architecture docs
-- **Test-driven development (TDD)** - Tests written BEFORE implementation
-- **Full traceability** - Requirements → Design → Code → Tests all linked
-- **Governance checkpoints** - Risk assessment at each phase
-- **Session continuity** - Ledgers and handoffs prevent agent degradation
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| **Agents** | 9 | Specialized AI team members (@qa, @backend, @architect, etc.) |
+| **Skills** | 9 | Auto-invoked expertise (debugging, code review, security, etc.) |
+| **Commands** | 13 | Slash commands for workflow phases |
+| **Hooks** | 5 | Lifecycle automation (continuity, context warnings) |
+
+### What It Enforces
+
+- ✅ **Design-first development** - No code without architecture docs
+- ✅ **Test-driven development (TDD)** - Tests written BEFORE implementation  
+- ✅ **Full traceability** - Requirements → Design → Code → Tests all linked
+- ✅ **Governance checkpoints** - Risk assessment at each phase
+- ✅ **Session continuity** - Ledgers and handoffs prevent agent degradation
+- ✅ **Python environment** - Always uses `uv run` for consistent execution
+
+---
 
 ## The Problem This Solves
 
@@ -33,13 +68,62 @@ Compaction 3: Now working with compressed noise
 
 **The Solution: Clear, don't compact.** Save state to a ledger, wipe context with `/clear`, resume fresh.
 
+---
+
+## Core Principles
+
+### 1. Design First
+
+No implementation without a design document in `docs/design/`. The workflow blocks coding until architecture is defined.
+
+### 2. Test-Driven Development
+
+```
+1. @qa writes tests → tests FAIL (RED)
+2. @backend/@frontend implements → tests PASS (GREEN)  
+3. Refactor → tests still PASS
+```
+
+### 3. Full Traceability
+
+Everything links via `traceability_matrix.json`:
+
+```
+REQ-001 (requirement)
+  ├── docs/design/auth-design.md (architecture)
+  ├── .design/REQ-001-ux.json (UX spec)
+  ├── tasks: [T-001, T-002] (sprint tasks)
+  ├── src/auth/login.py (code)
+  └── tests/auth/test_login.py (tests)
+```
+
+### 4. Clear, Don't Compact
+
+```
+/save-state    # Updates ledger
+/clear         # Fresh context
+               # SessionStart hook loads ledger + handoff automatically
+```
+
+### 5. EARS Requirements
+
+| Type | Template |
+|------|----------|
+| Event-driven | `WHEN <trigger> THEN the system SHALL <response>.` |
+| State-driven | `WHILE <state> the system SHALL <response>.` |
+| Unconditional | `The system SHALL <response>.` |
+| Optional | `WHERE <condition>, the system SHALL <response>.` |
+
+---
+
 ## Quick Start
 
 ### Prerequisites
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) v2.0+ installed
+- [Claude Code](https://code.claude.com/docs) installed
 - macOS, Linux, or WSL
 - `jq` installed (`brew install jq` or `apt install jq`)
+- `uv` installed (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 
 ### Installation
 
@@ -47,108 +131,212 @@ Compaction 3: Now working with compressed noise
 
 ```bash
 git clone https://github.com/blevene/claude_code_workflow.git
+cd claude_code_workflow
 ```
 
-**2. Copy to Claude's plugins directory:**
+**2. Make hooks executable:**
 
 ```bash
-mkdir -p ~/.claude/plugins
-cp -r claude_code_workflow/plugin ~/.claude/plugins/claude_code_workflow
+chmod +x plugin/hooks/*.sh
+chmod +x plugin/scripts/*.sh
 ```
 
-**3. Make hooks executable:**
+**3. Run Claude Code with the plugin:**
 
 ```bash
-chmod +x ~/.claude/plugins/claude_code_workflow/hooks/*.sh
-chmod +x ~/.claude/plugins/claude_code_workflow/scripts/*.sh
+claude --plugin-dir ./plugin
 ```
 
-**4. Create a shell alias (required for persistence):**
-
-Add this line to your `~/.zshrc` (or `~/.bashrc` for bash):
+**4. (Optional) Create a shell alias:**
 
 ```bash
-alias claude='claude --plugin-dir ~/.claude/plugins/claude_code_workflow'
+# Add to ~/.zshrc or ~/.bashrc
+alias claude-faang='claude --plugin-dir /path/to/claude_code_workflow/plugin'
 ```
 
-**5. Reload your shell:**
+**5. Verify installation:**
 
-```bash
-source ~/.zshrc
-```
-
-**6. Verify installation:**
-
-```bash
-claude
-```
-
-Then type `/help` - you should see the workflow commands listed.
-
-> **Why the alias?** There's a [known bug](https://github.com/anthropics/claude-code/issues/12457) in Claude Code v2.x where locally installed plugins don't persist between sessions. The alias ensures your plugin loads every time.
+Type `/help` - you should see commands under the `claude-code-workflow` namespace.
 
 ### Initialize a Project
 
-For each project, run the init script:
+From within Claude Code (after running with `--plugin-dir`):
 
 ```bash
-~/.claude/plugins/claude_code_workflow/scripts/init-project.sh
+/init
+```
+
+Or directly from shell:
+
+```bash
+/path/to/claude_code_workflow/plugin/scripts/init-project.sh
 ```
 
 This creates:
-- `thoughts/ledgers/` - Continuity ledgers
-- `thoughts/shared/handoffs/` - Session handoffs
-- `thoughts/shared/plans/` - Implementation plans
-- `traceability_matrix.json` - Requirement tracking
+
+| Directory/File | Purpose |
+|----------------|---------|
+| `thoughts/ledgers/` | Continuity ledgers (survives `/clear`) |
+| `thoughts/shared/handoffs/` | Session handoffs |
+| `thoughts/shared/plans/` | Implementation plans |
+| `traceability_matrix.json` | Requirement tracking |
+| `.venv/` | Python virtual environment (via uv) |
+| `pyproject.toml` | Python project configuration |
+
+---
+
+## Workflow Example
+
+Here's a typical session using the FAANG workflow:
+
+```bash
+# Start Claude with the plugin
+claude --plugin-dir ./plugin
+
+# 0. Initialize project (first time only)
+> /init
+
+# 1. Process a PRD into requirements, design, and tasks
+> /prd requirements/user-auth.md
+
+# 2. Review the design for completeness
+> /review-design
+
+# 3. (Optional) Create UX spec for UI features
+> /ux-spec REQ-001
+
+# 4. Implement with TDD (tests first!)
+> /tdd auth/login
+
+# Context at 75% - save state before it degrades
+> /save-state
+> /clear
+
+# Fresh context, ledger auto-loaded - continue
+> /status
+> /tdd auth/validation
+
+# 5. Pre-submission checks before PR
+> /pre-review
+
+# End of session
+> /handoff
+```
+
+**Note:** `/prd` creates tasks automatically, so `/plan-sprint` is only needed after `/design` (when you don't have a PRD).
+
+### Workflow Phases
+
+**With PRD (recommended):**
+```
+/prd ──→ /review-design ──→ [/ux-spec] ──→ /tdd ──→ /pre-review
+  │                             │
+  └─ creates tasks too          └─ optional (UI features only)
+```
+
+**Without PRD:**
+```
+/design ──→ /review-design ──→ /plan-sprint ──→ [/ux-spec] ──→ /tdd ──→ /pre-review
+                                    │               │
+                                    └─ required     └─ optional
+```
+
+**Backend-only (no UI):**
+```
+/prd ──→ /review-design ──→ /tdd ──→ /pre-review
+```
+
+---
 
 ## Commands
 
-### Continuity Commands (NEW in v2)
+### Continuity Commands
 
 | Command | Description |
 |---------|-------------|
 | `/save-state` | Update continuity ledger before `/clear` |
 | `/handoff` | Create detailed session handoff for later |
 | `/resume` | Load and review latest handoff |
+| `/status` | Show workflow progress and health |
 
-### FAANG Workflow Commands
+### Workflow Commands
 
 | Command | Description |
 |---------|-------------|
-| `/design <feature>` | Create a technical design document with architecture, API contracts, and data models |
-| `/tdd <module>` | Implement a module using strict TDD (tests FIRST, then implementation) |
-| `/prd <file>` | Process a PRD into EARS requirements, design doc, and task breakdown |
-| `/review-design` | Validate design document completeness and assess risk level |
-| `/plan-sprint` | Generate atomic task breakdown with TDD task pairing |
-| `/pre-review` | Run pre-submission validation (lint, tests, debug code detection) |
-| `/status` | Show workflow progress, continuity health, gaps, and recommended next action |
-| `/ux-spec <REQ-ID>` | Create UX specification with screens, states, and interactions |
+| `/init` | Initialize project directories, venv, and config |
+| `/prd <file>` | Process PRD into EARS requirements + design + tasks |
+| `/design <feature>` | Create design document (when no PRD exists) |
+| `/review-design` | Validate design completeness and risk |
+| `/plan-sprint` | Generate tasks (use after `/design`, not `/prd`) |
+| `/ux-spec <REQ-ID>` | Create UX specification *(optional, for UI features)* |
+| `/tdd <module>` | Implement with strict TDD (tests FIRST) |
+| `/pre-review` | Pre-submission validation |
+| `/test` | Verify plugin is working correctly |
+
+---
 
 ## Agents
 
-Invoke agents with `@agent-name` in your conversation:
+Nine specialized agents that Claude can delegate work to:
 
-| Agent | Role |
-|-------|------|
-| `@orchestrator` | Routes work between agents, manages continuity, prevents infinite loops |
-| `@pm` | Owns EARS requirements, priorities, and acceptance criteria |
-| `@planner` | Decomposes work into atomic tasks with TDD pairing |
-| `@architect` | Creates design docs, API contracts, and architecture diagrams |
-| `@ux` | Defines user flows, screens, states, and interactions |
-| `@frontend` | Implements UI (AFTER tests exist) |
-| `@backend` | Implements APIs and business logic (AFTER tests exist) |
-| `@qa` | **Writes tests FIRST** - the TDD enforcer |
-| `@overseer` | Governance, drift detection, risk assessment, and continuity health |
+| Agent | Role | When Used |
+|-------|------|-----------|
+| `@orchestrator` | Routes work, manages continuity, prevents loops | Multi-agent workflows |
+| `@pm` | EARS requirements, priorities, acceptance criteria | Project start |
+| `@planner` | Task breakdown, dependencies, sprint planning | After design review |
+| `@architect` | Design docs, API contracts, architecture | Before implementation |
+| `@ux` | User flows, screens, states, interactions | Before frontend work |
+| `@frontend` | UI implementation (AFTER tests exist) | UI development |
+| `@backend` | APIs and business logic (AFTER tests exist) | Server-side work |
+| `@qa` | **Writes tests FIRST** - TDD enforcer | Before any implementation |
+| `@overseer` | Governance, risk assessment, drift detection | Reviews, pre-release |
 
-All agents are **continuity-aware** - they check ledgers before starting, warn about context thresholds, and produce handoff-ready summaries.
+### Agent Features
+
+All agents:
+- Are **continuity-aware** (check ledgers, warn about context)
+- Use `model: inherit` for consistent behavior
+- Include "MUST BE USED" triggers for auto-delegation
+- Report handoff-ready summaries to @orchestrator
+
+---
+
+## Skills
+
+Nine auto-invoked skills that Claude uses based on context:
+
+| Skill | Auto-Triggers When |
+|-------|-------------------|
+| `faang-workflow` | Production features, PRDs, TDD, sprint planning |
+| `code-review` | PR reviews, code quality checks, assessing changes |
+| `debugging` | Fixing bugs, investigating errors, test failures |
+| `git-workflow` | Committing, creating PRs, branch management |
+| `refactoring` | Restructuring code, reducing duplication |
+| `api-design` | Designing endpoints, API contracts |
+| `security-review` | Security audits, vulnerability checks |
+| `documentation` | Writing docs, READMEs, docstrings |
+| `database` | Schema changes, migrations, queries |
+
+### How Skills Work
+
+Claude automatically invokes skills based on your request:
+
+| You Say | Claude Uses |
+|---------|-------------|
+| "Review this PR" | `code-review` |
+| "Fix this failing test" | `debugging` |
+| "Commit these changes" | `git-workflow` |
+| "Clean up this code" | `refactoring` |
+| "Design the user API" | `api-design` |
+| "Check for security issues" | `security-review` |
+| "Document this function" | `documentation` |
+| "Add a new database column" | `database` |
+
+---
 
 ## Continuity System
 
-### The Problem
-
-Context compaction degrades agent quality. After 2-3 compactions, agents hallucinate context.
-
-### The Solution
+### How It Works
 
 ```
 Work → Context fills → /save-state → /clear → Ledger auto-loads → Continue
@@ -167,9 +355,9 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 
 | Hook | When | What It Does |
 |------|------|--------------|
-| **SessionStart** | `/clear`, startup | Loads ledger + latest handoff into context |
+| **SessionStart** | `/clear`, startup | Loads ledger + handoff + Python env check |
 | **PreCompact** | Before compaction | Creates auto-handoff, blocks manual compact |
-| **UserPromptSubmit** | Every message | Shows context warnings, skill hints |
+| **UserPromptSubmit** | Every message | Context warnings, skill hints |
 | **PostToolUse** | After file edits | Tracks modified files |
 | **SubagentStop** | Agent completes | Creates task handoff |
 
@@ -182,103 +370,64 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 | `thoughts/shared/plans/*.md` | Implementation plans |
 | `traceability_matrix.json` | Requirement tracking |
 
-## Workflow Example
+---
+
+## Python Environment
+
+> **CRITICAL:** This workflow enforces `uv` for all Python execution.
+
+### The Rule
 
 ```bash
-# Start Claude with the plugin
-claude
+# ✅ CORRECT - Always use uv run
+uv run pytest tests/ -v
+uv run python script.py
 
-# Initialize project (first time)
-> # Run init-project.sh externally first
-
-# 1. Process a PRD into requirements and design
-> /prd requirements/user-auth.md
-
-# 2. Review the design for completeness
-> /review-design
-
-# 3. Generate sprint tasks with TDD pairing
-> /plan-sprint
-
-# 4. Create UX spec for a requirement
-> /ux-spec REQ-001
-
-# 5. Implement with TDD (tests first!)
-> /tdd auth/login
-
-# Context at 75% - save state before it degrades
-> /save-state
-> /clear
-
-# Fresh context, ledger auto-loaded - continue
-> /status
-> /tdd auth/validation
-
-# 6. Pre-submission checks before PR
-> /pre-review
-
-# End of session
-> /handoff
+# ❌ WRONG - Never run directly  
+pytest tests/           
+python script.py
 ```
 
-## Core Principles
+### Common Commands
 
-### 1. Design First
+```bash
+# Create virtual environment
+uv venv
 
-No implementation begins without a design document in `docs/design/`. The `/design` command creates architecture docs with:
+# Sync dependencies
+uv sync
 
-- Problem statement and goals
-- Architecture diagram (Mermaid)
-- API contracts with examples
-- Data model
-- Security considerations
-- Rollout plan
+# Add packages
+uv add pytest requests
 
-### 2. Test-Driven Development
+# Run tests
+uv run pytest tests/ -v
 
-The `@qa` agent **always writes tests before implementation**:
-
-```
-1. @qa writes tests → tests FAIL (RED)
-2. @backend/@frontend implements → tests PASS (GREEN)  
-3. Refactor → tests still PASS
+# Run Python scripts
+uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
 ```
 
-The `/tdd` command enforces this workflow automatically.
+---
 
-### 3. Traceability
+## Tools
 
-Everything links together via `traceability_matrix.json`:
+Python utilities for validation and reporting:
 
-```
-REQ-001 (requirement)
-  ├── docs/design/auth-design.md (architecture)
-  ├── .design/REQ-001-ux.json (UX spec)
-  ├── tasks: [T-001, T-002] (sprint tasks)
-  ├── src/auth/login.py (code)
-  └── tests/auth/test_login.py (tests)
-```
+```bash
+# Traceability management
+uv run python tools/traceability_tools.py init traceability_matrix.json
+uv run python tools/traceability_tools.py validate traceability_matrix.json
+uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
+uv run python tools/traceability_tools.py summary traceability_matrix.json --markdown
 
-### 4. Clear, Don't Compact
+# Test runner with summary
+uv run python tools/run_tests_summarized.py --cmd "uv run pytest tests/" --tail 40
 
-When context fills up, save state and `/clear` instead of letting compaction degrade your agents:
-
-```
-/save-state    # Updates ledger
-/clear         # Fresh context
-               # SessionStart hook loads ledger + handoff automatically
+# Plan validation
+uv run python tools/planner_tools.py validate planner_output.json
 ```
 
-### 5. EARS Requirements
-
-Requirements use the EARS (Easy Approach to Requirements Syntax) format:
-
-| Type | Template |
-|------|----------|
-| Event-driven | `WHEN <trigger> THEN the system SHALL <response>.` |
-| State-driven | `WHILE <state> the system SHALL <response>.` |
-| Unconditional | `The system SHALL <response>.` |
-| Optional | `WHERE <condition>, the system SHALL <response>.` |
+---
 
 ## Directory Structure
 
@@ -286,87 +435,108 @@ Requirements use the EARS (Easy Approach to Requirements Syntax) format:
 claude_code_workflow/
 ├── plugin/
 │   ├── .claude-plugin/
-│   │   ├── plugin.json       # Plugin manifest
-│   │   └── settings.json     # Hook registrations
-│   ├── hooks/                # Lifecycle hooks
-│   │   ├── session-start.sh
-│   │   ├── pre-compact.sh
-│   │   ├── user-prompt-submit.sh
-│   │   ├── post-tool-use.sh
-│   │   └── subagent-stop.sh
+│   │   ├── plugin.json          # Plugin manifest
+│   │   └── settings.json        # Status line config
+│   │
+│   ├── agents/                   # 9 specialized agents
+│   │   ├── orchestrator.md      # Routes work, prevents loops
+│   │   ├── pm.md                # Requirements owner
+│   │   ├── planner.md           # Task breakdown
+│   │   ├── architect.md         # Design & contracts
+│   │   ├── ux.md                # User flows
+│   │   ├── frontend.md          # UI implementation
+│   │   ├── backend.md           # API implementation
+│   │   ├── qa.md                # TDD test writer
+│   │   └── overseer.md          # Governance & risk
+│   │
+│   ├── commands/                 # 13 slash commands
+│   │   ├── init.md              # Project initialization
+│   │   ├── save-state.md        # Update ledger
+│   │   ├── handoff.md           # Session transfer
+│   │   ├── resume.md            # Load handoff
+│   │   ├── status.md            # Workflow health
+│   │   ├── prd.md               # Process PRD
+│   │   ├── design.md            # Create design doc
+│   │   ├── review-design.md     # Validate design
+│   │   ├── plan-sprint.md       # Task breakdown
+│   │   ├── ux-spec.md           # UX specification (optional)
+│   │   ├── tdd.md               # TDD implementation
+│   │   ├── pre-review.md        # Pre-submission check
+│   │   └── test.md              # Plugin health check
+│   │
+│   ├── skills/                   # 9 auto-invoked skills
+│   │   ├── faang-workflow/      # Main orchestration
+│   │   ├── code-review/         # PR & quality review
+│   │   ├── debugging/           # Bug investigation
+│   │   ├── git-workflow/        # Commits & PRs
+│   │   ├── refactoring/         # Code restructuring
+│   │   ├── api-design/          # REST/GraphQL patterns
+│   │   ├── security-review/     # Vulnerability checks
+│   │   ├── documentation/       # Docs & docstrings
+│   │   └── database/            # Schema & migrations
+│   │
+│   ├── hooks/                    # 5 lifecycle hooks
+│   │   ├── hooks.json           # Hook configuration
+│   │   ├── session-start.sh     # Load continuity state
+│   │   ├── pre-compact.sh       # Auto-handoff
+│   │   ├── user-prompt-submit.sh # Context warnings
+│   │   ├── post-tool-use.sh     # Track file changes
+│   │   └── subagent-stop.sh     # Task handoffs
+│   │
 │   ├── scripts/
-│   │   ├── init-project.sh   # Project initialization
-│   │   └── status.sh         # Status line
-│   ├── commands/             # Slash commands
-│   │   ├── save-state.md     # NEW: Update ledger
-│   │   ├── handoff.md        # NEW: Session transfer
-│   │   ├── resume.md         # NEW: Load handoff
-│   │   ├── design.md
-│   │   ├── tdd.md
+│   │   ├── init-project.sh      # Project setup
+│   │   └── status.sh            # Status line
+│   │
+│   ├── tools/                    # Python utilities
+│   │   ├── traceability_tools.py
+│   │   ├── planner_tools.py
+│   │   ├── run_tests_summarized.py
+│   │   ├── repo_map.py
 │   │   └── ...
-│   ├── agents/               # Subagents (continuity-aware)
-│   │   ├── orchestrator.md
-│   │   ├── qa.md
-│   │   └── ...
-│   ├── skills/
-│   │   └── faang-workflow/
-│   │       └── SKILL.md
-│   ├── tools/                # Python utilities
-│   │   └── traceability_tools.py
-│   └── schemas/              # JSON validation schemas
-└── README.md
+│   │
+│   └── schemas/
+│       ├── planner_task_schema.json
+│       └── traceability_matrix_schema.json
+│
+├── README.md
+└── LICENSE
 ```
 
-## Tools
-
-Python utilities for validation and reporting:
-
-```bash
-# Initialize traceability matrix
-python ~/.claude/plugins/claude_code_workflow/tools/traceability_tools.py init traceability_matrix.json
-
-# Validate traceability
-python ~/.claude/plugins/claude_code_workflow/tools/traceability_tools.py validate traceability_matrix.json
-
-# Check for gaps (missing tests, design, etc.)
-python ~/.claude/plugins/claude_code_workflow/tools/traceability_tools.py check-gaps traceability_matrix.json
-
-# Get summary
-python ~/.claude/plugins/claude_code_workflow/tools/traceability_tools.py summary traceability_matrix.json --markdown
-```
+---
 
 ## Customization
 
-### Adding New Commands
+### Adding Commands
 
-Create a markdown file in `commands/`:
+Create `plugin/commands/my-command.md`:
 
 ```markdown
 ---
-description: Your command description here
+description: What this command does
 ---
 
-# Command Title
+# My Command
 
 Instructions for Claude...
 
 Use $ARGUMENTS to capture user input.
 ```
 
-### Adding New Agents
+### Adding Agents
 
-Create a markdown file in `agents/`:
+Create `plugin/agents/my-agent.md`:
 
 ```markdown
 ---
-name: agent-name
-description: What this agent does
+name: my-agent
+description: What this agent does. Use PROACTIVELY when [trigger]. MUST BE USED for [requirement].
 tools: Read, Write, Bash, Grep, Glob
+model: inherit
 ---
 
-# Agent Title
+# My Agent
 
-You are the **Agent Name** - your role description.
+You are the **My Agent** - your role description.
 
 ## Responsibilities
 
@@ -383,59 +553,80 @@ You are the **Agent Name** - your role description.
 Report to @orchestrator with handoff-ready summary.
 ```
 
-### Modifying Hooks
+### Adding Skills
 
-Hooks are bash scripts in `hooks/`. They receive JSON on stdin and output JSON:
+Create `plugin/skills/my-skill/SKILL.md`:
 
-```bash
-#!/bin/bash
-INPUT=$(cat)
-# Process input...
-echo '{"continue": true}'
+```markdown
+---
+name: my-skill
+description: What this skill does. Auto-triggers for [contexts].
+---
+
+# My Skill
+
+## When to Use
+
+- Context 1
+- Context 2
+
+## Methodology
+
+Step-by-step instructions...
 ```
+
+---
 
 ## Troubleshooting
 
-### Commands not appearing in `/help`
+### Commands not appearing
 
-1. Verify the alias is set:
    ```bash
-   alias | grep claude
-   ```
+# Verify plugin is loaded
+claude --plugin-dir ./plugin
 
-2. Check plugin structure:
-   ```bash
-   ls -la ~/.claude/plugins/claude_code_workflow/.claude-plugin/
+# Type /help and look for claude-code-workflow namespace
    ```
 
 ### Hooks not running
 
-1. Make them executable:
    ```bash
-   chmod +x ~/.claude/plugins/claude_code_workflow/hooks/*.sh
-   ```
+# Make executable
+chmod +x plugin/hooks/*.sh
 
-2. Verify `jq` is installed:
+# Verify jq
+jq --version
+
+# Test manually
+echo '{"source":"startup"}' | plugin/hooks/session-start.sh
+```
+
+### Python environment issues
+
    ```bash
-   jq --version
+# Verify uv
+uv --version
+
+# Recreate environment
+rm -rf .venv
+uv venv
+uv sync
+
+# Test
+uv run pytest --version
    ```
 
 ### Ledger not loading after /clear
 
-1. Verify ledger exists:
    ```bash
+# Verify ledger exists
    ls thoughts/ledgers/CONTINUITY_*.md
+
+# Test hook manually
+echo '{"source":"clear"}' | plugin/hooks/session-start.sh
    ```
 
-2. Test hook manually:
-   ```bash
-   echo '{"source":"clear"}' | ./hooks/session-start.sh
-   ```
-
-## Known Issues
-
-- **Plugin persistence bug**: Plugins installed via `/plugin install` don't persist between sessions. Use the alias workaround.
-- **Hook latency**: Some hooks (especially SessionEnd) may add 1-3 seconds as they finalize state.
+---
 
 ## Contributing
 
@@ -445,13 +636,24 @@ echo '{"continue": true}'
 4. Test with `claude --plugin-dir /path/to/your/fork/plugin`
 5. Submit a pull request
 
+---
+
+## Known Issues
+
+- **Hook latency**: Some hooks may add 1-3 seconds as they process state
+- **Large ledgers**: Very long sessions may create large ledger files
+
+---
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
+---
+
 ## Acknowledgments
 
-- [Continuous-Claude-v2](https://github.com/parcadei/Continuous-Claude-v2) - Continuity patterns and inspiration
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by Anthropic
+- [Continuous-Claude-v2](https://github.com/parcadei/Continuous-Claude-v2) - Continuity patterns
+- [Claude Code](https://code.claude.com/docs) by Anthropic
+- [EARS methodology](https://alistairmavin.com/ears/) for requirements
 - FAANG engineering practices
-- [EARS requirements methodology](https://alistairmavin.com/ears/)

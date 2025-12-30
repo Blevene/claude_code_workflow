@@ -15,7 +15,7 @@ ruff check . || flake8 . || echo "No Python linter found"
 
 ### 2. Tests
 ```bash
-pytest --cov=src -v
+uv run pytest --cov=src -v
 ```
 
 ### 3. Debug Code Detection
@@ -37,7 +37,7 @@ grep -rn "TODO\|FIXME\|XXX\|HACK" src/
 ### 5. Traceability Gaps
 
 ```bash
-python .claude/tools/traceability_tools.py check-gaps traceability_matrix.json
+uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
 ```
 
 ## Output Report

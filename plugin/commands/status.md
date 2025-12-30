@@ -29,8 +29,8 @@ ls -la docs/design/*.md 2>/dev/null || echo "No design docs found"
 
 ### 3. Traceability Matrix
 ```bash
-python tools/traceability_tools.py summary traceability_matrix.json --markdown
-python tools/traceability_tools.py check-gaps traceability_matrix.json
+uv run python tools/traceability_tools.py summary traceability_matrix.json --markdown
+uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
 ```
 
 ### 4. Plan Status
@@ -38,7 +38,7 @@ Check if plans exist in `thoughts/shared/plans/`.
 
 ### 5. Test Coverage
 ```bash
-pytest --cov=src --cov-report=term-missing 2>/dev/null || echo "Tests not configured"
+uv run pytest --cov=src --cov-report=term-missing 2>/dev/null || echo "Tests not configured"
 ```
 
 ### 6. Git Status

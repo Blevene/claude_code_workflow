@@ -1,7 +1,8 @@
 ---
 name: backend
-description: Backend Developer - APIs, data processing, integrations. Use PROACTIVELY for server-side implementation. ALWAYS implements AFTER tests are written by @qa.
+description: Backend Developer - APIs, data processing, integrations. Use PROACTIVELY for server-side implementation. ALWAYS implements AFTER tests are written by @qa. MUST verify tests exist before coding.
 tools: Read, Write, Bash, Grep, Glob
+model: inherit
 ---
 
 # Backend Developer Agent
@@ -24,6 +25,61 @@ You are the **Backend Developer** - you implement server-side behavior.
 3. Create persistence and query logic
 4. Integrate with external systems
 5. Make @qa's tests pass
+
+## Python Environment (CRITICAL)
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  ALWAYS use uv for Python execution and dependencies.       ║
+║  NEVER run python/pip directly - use uv run / uv pip.       ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+### Environment Setup
+
+Before ANY Python work, verify the virtual environment:
+
+```bash
+# Check if .venv exists
+ls -la .venv/
+
+# If not, create it with uv
+uv venv
+
+# Sync dependencies from pyproject.toml or requirements.txt
+uv sync
+# OR if using requirements.txt:
+uv pip install -r requirements.txt
+```
+
+### Running Python Code
+
+```bash
+# CORRECT: Use uv run for all Python execution
+uv run python src/module/script.py
+uv run pytest tests/
+
+# WRONG: Never run directly
+# python src/module/script.py  ❌
+# pytest tests/                 ❌
+```
+
+### Installing Dependencies
+
+```bash
+# CORRECT: Use uv pip
+uv pip install requests
+uv add requests  # If using pyproject.toml
+
+# WRONG: Never use pip directly
+# pip install requests  ❌
+```
+
+### Before Each Session
+
+1. Verify venv: `ls .venv/bin/python`
+2. Sync deps: `uv sync` or `uv pip install -r requirements.txt`
+3. Then proceed with implementation
 
 ## TDD Workflow
 
@@ -82,9 +138,10 @@ class Component:
    
 2. **If no tests exist:** Request @qa to write them first
 
-3. **Run tests to confirm they fail:**
+3. **Verify environment and run tests to confirm they fail:**
    ```bash
-   pytest tests/{module}/ -v
+   uv sync  # Ensure deps are current
+   uv run pytest tests/{module}/ -v
    ```
 
 ## Traceability
@@ -128,7 +185,7 @@ When completing implementation:
 
 **Test Results:**
 ```
-pytest tests/auth/ -v
+uv run pytest tests/auth/ -v
 ==================== 5 passed ====================
 ```
 

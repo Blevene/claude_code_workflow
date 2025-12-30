@@ -52,8 +52,8 @@ Check \`.claude/cache/session-$SESSION_ID-files.txt\` for recent file activity.
 ### Continuation Points
 
 - Review changes made by this agent
-- Run tests to verify: \`/tdd verify\`
-- Check traceability: \`python tools/traceability_tools.py check-gaps\`
+- Run tests to verify: \`uv run pytest tests/ -v\`
+- Check traceability: \`uv run python tools/traceability_tools.py check-gaps traceability_matrix.json\`
 
 EOF
 

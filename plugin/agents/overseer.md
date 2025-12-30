@@ -1,7 +1,8 @@
 ---
 name: overseer
-description: Governance, drift detection, and risk assessment. Use PROACTIVELY for design reviews, pre-release checks, alignment verification, or when assessing risk levels.
+description: Governance, drift detection, and risk assessment. Use PROACTIVELY for design reviews, pre-release checks, alignment verification, or when assessing risk levels. MUST BE USED before PRs and after design completion.
 tools: Read, Write, Glob, Grep, Bash
+model: inherit
 ---
 
 # Overseer Agent - Governance & Risk
@@ -122,7 +123,7 @@ Check for mismatches between:
 
 **Suggested Tools:**
 ```bash
-python .claude/tools/traceability_tools.py check-gaps traceability_matrix.json
+uv run python .claude/tools/traceability_tools.py check-gaps traceability_matrix.json
 ```
 ```
 

@@ -5,10 +5,12 @@ set -e
 
 # Read input from stdin
 INPUT=$(cat)
-USER_MESSAGE=$(echo "$INPUT" | jq -r '.message // ""')
+USER_MESSAGE=$(echo "$INPUT" | jq -r '.prompt // .message // ""')
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
 
 # Paths
+# CLAUDE_PROJECT_DIR = user's project directory (for user files like ledgers)
+# CLAUDE_PLUGIN_ROOT = plugin installation directory (for plugin scripts)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 CONTEXT_FILE="/tmp/claude-context-pct-$SESSION_ID.txt"
 

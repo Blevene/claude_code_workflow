@@ -1,10 +1,18 @@
 ---
-description: Create a technical design document for a feature
+description: Create a technical design document when you don't have a PRD
 ---
 
 # Create Design Document
 
 Create a technical design document for: $ARGUMENTS
+
+## When to Use This vs /prd
+
+| Scenario | Use |
+|----------|-----|
+| Have a PRD file | `/prd <file>` - extracts requirements + creates design + plans tasks |
+| No PRD, just an idea | `/design <feature>` - this command |
+| Refining existing design | `/design <feature>` - this command |
 
 ## Steps
 

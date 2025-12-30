@@ -9,6 +9,8 @@ SOURCE=$(echo "$INPUT" | jq -r '.source // "startup"')
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
 
 # Paths
+# CLAUDE_PROJECT_DIR = user's project directory (for user files like ledgers)
+# CLAUDE_PLUGIN_ROOT = plugin installation directory (for plugin scripts)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 LEDGER_DIR="$PROJECT_DIR/thoughts/ledgers"
 HANDOFF_DIR="$PROJECT_DIR/thoughts/shared/handoffs"
@@ -53,6 +55,52 @@ extract_ledger_context() {
 
 # Build context to inject
 CONTEXT=""
+
+# Check Python environment status
+check_python_env() {
+    local env_status=""
+    
+    # Check if uv is available
+    if command -v uv &> /dev/null; then
+        env_status+="✓ uv available"
+    else
+        env_status+="⚠ uv NOT found - install: curl -LsSf https://astral.sh/uv/install.sh | sh"
+        echo "$env_status"
+        return
+    fi
+    
+    # Check if .venv exists
+    if [ -d "$PROJECT_DIR/.venv" ]; then
+        env_status+="\n✓ .venv/ exists"
+    else
+        env_status+="\n⚠ .venv/ missing - run: uv venv"
+    fi
+    
+    # Check for pyproject.toml or requirements.txt
+    if [ -f "$PROJECT_DIR/pyproject.toml" ]; then
+        env_status+="\n✓ pyproject.toml found"
+    elif [ -f "$PROJECT_DIR/requirements.txt" ]; then
+        env_status+="\n✓ requirements.txt found"
+    else
+        env_status+="\n• No pyproject.toml or requirements.txt"
+    fi
+    
+    echo -e "$env_status"
+}
+
+# Get Python environment status
+PYTHON_ENV_STATUS=$(check_python_env)
+CONTEXT+="
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐍 PYTHON ENVIRONMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+$PYTHON_ENV_STATUS
+
+⚠️  REMINDER: Always use 'uv run' for Python execution:
+   • Tests:  uv run pytest tests/ -v
+   • Code:   uv run python script.py
+   • Deps:   uv sync (or uv pip install -r requirements.txt)
+"
 
 # Load ledger
 LEDGER=$(find_latest_ledger)

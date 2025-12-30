@@ -22,11 +22,11 @@ description: Resume work from the latest handoff - loads context and continues
    # Git status
    git status --short
    
-   # Run tests
-   pytest --tb=no -q 2>/dev/null || echo "Tests need attention"
+   # Run tests (always use uv run)
+   uv run pytest --tb=no -q 2>/dev/null || echo "Tests need attention"
    
    # Check traceability gaps
-   python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null || true
+   uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null || true
    ```
 
 4. **Verify Files Still Exist**

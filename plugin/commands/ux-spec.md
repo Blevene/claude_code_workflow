@@ -1,10 +1,13 @@
 ---
-description: Create UX specification for a requirement
+description: Create UX specification for a requirement (optional - for UI features)
 ---
 
 # UX Specification
 
 Create a UX specification for: $ARGUMENTS
+
+> **Note:** This command is **optional**. Use it for features with user interfaces.
+> Backend-only features can skip directly to `/tdd`.
 
 ## Steps
 

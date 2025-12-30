@@ -1,10 +1,19 @@
 ---
-description: Generate task breakdown with TDD pairing from design doc
+description: Generate or regenerate task breakdown with TDD pairing from design doc
 ---
 
 # Sprint Planning
 
 Generate an atomic task breakdown from the design document.
+
+## When to Use
+
+| Scenario | Action |
+|----------|--------|
+| After `/prd` | Usually not needed - `/prd` already creates tasks |
+| After `/design` | **Use this** to create task breakdown |
+| After design changes | **Use this** to regenerate tasks |
+| Plan needs refinement | **Use this** to add/modify tasks |
 
 ## Steps
 

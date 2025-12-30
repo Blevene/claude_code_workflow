@@ -82,11 +82,11 @@ docs/design/auth-design.md    # Design decisions
 
 ### Commands to Run
 ```bash
-# Verify tests still pass
-pytest tests/auth/ -v
+# Verify tests still pass (always use uv run)
+uv run pytest tests/auth/ -v
 
 # Check traceability
-python tools/traceability_tools.py check-gaps traceability_matrix.json
+uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
 ```
 
 ### Agent History

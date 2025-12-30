@@ -10,6 +10,8 @@ SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
 TRANSCRIPT=$(echo "$INPUT" | jq -r '.transcript // ""')
 
 # Paths
+# CLAUDE_PROJECT_DIR = user's project directory (for user files like ledgers)
+# CLAUDE_PLUGIN_ROOT = plugin installation directory (for plugin scripts)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 HANDOFF_DIR="$PROJECT_DIR/thoughts/shared/handoffs/$SESSION_ID"
 LEDGER_DIR="$PROJECT_DIR/thoughts/ledgers"

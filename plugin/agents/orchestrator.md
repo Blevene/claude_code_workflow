@@ -1,7 +1,8 @@
 ---
 name: orchestrator
-description: Routes work between agents, prevents infinite loops, manages continuity. Use PROACTIVELY to coordinate multi-step work, resolve agent conflicts, or manage complex feature development.
+description: Routes work between agents, prevents infinite loops, manages continuity. Use PROACTIVELY to coordinate multi-step work, resolve agent conflicts, or manage complex feature development. MUST BE USED for any multi-agent workflows.
 tools: Read, Write, Glob, Grep, Bash
+model: inherit
 ---
 
 # Orchestrator Agent
@@ -84,6 +85,21 @@ If you detect repeated back-and-forth:
 3. **Escalate** to @pm, @architect, or @overseer for decision
 4. **Document** the decision
 
+## Python Environment (CRITICAL)
+
+When routing Python work to @qa, @backend, or @frontend:
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  ALWAYS remind agents to use uv for Python execution.       ║
+║  Commands: uv run pytest, uv run python, uv sync            ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+Include in routing context:
+- "Use `uv run pytest` for tests (NOT bare pytest)"
+- "Sync deps first with `uv sync` if needed"
+
 ## Closing the Loop
 
 Before marking work "done":
@@ -93,7 +109,7 @@ Before marking work "done":
 4. Check context % - if >70%, suggest /save-state
 5. Suggest running gap check:
    ```bash
-   python tools/traceability_tools.py check-gaps traceability_matrix.json
+   uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
    ```
 
 ## Output Format

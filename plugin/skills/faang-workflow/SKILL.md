@@ -25,14 +25,31 @@ description: FAANG multi-agent development workflow with session continuity. Aut
 
 ## Workflow Phases
 
-| Phase | Command | Action |
-|-------|---------|--------|
-| 1 | /design or /prd | Create design doc |
-| 2 | /review-design | @overseer validates |
-| 3 | /plan-sprint | Task breakdown |
-| 4 | /ux-spec | UX specification |
-| 5 | /tdd | Tests → Implementation |
-| 6 | /pre-review | Final check |
+| Phase | Command | Action | Required? |
+|-------|---------|--------|-----------|
+| 1 | `/prd <file>` or `/design <feat>` | Create design doc | ✅ Yes |
+| 2 | `/review-design` | @overseer validates | ✅ Yes |
+| 3 | `/plan-sprint` | Task breakdown | Only after `/design` |
+| 4 | `/ux-spec <REQ>` | UX specification | Only for UI features |
+| 5 | `/tdd <module>` | Tests → Implementation | ✅ Yes |
+| 6 | `/pre-review` | Final check | ✅ Yes |
+
+### Typical Flows
+
+**With PRD:**
+```
+/prd → /review-design → [/ux-spec] → /tdd → /pre-review
+```
+
+**Without PRD:**
+```
+/design → /review-design → /plan-sprint → [/ux-spec] → /tdd → /pre-review
+```
+
+**Backend-only:**
+```
+/prd → /review-design → /tdd → /pre-review  (skip /ux-spec)
+```
 
 ## Continuity System (CRITICAL)
 
@@ -79,12 +96,33 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 3. **Traceability** - Everything links to REQ-* IDs
 4. **Loop prevention** - Escalate after 2-3 bounces
 5. **Context management** - /save-state before /clear
+6. **Python environment** - Always use `uv run` for Python/pytest
+
+## Python Environment (CRITICAL)
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  ALWAYS use uv for Python execution and dependencies.       ║
+║  NEVER run python/pip/pytest directly - use uv run.         ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+| Task | Command |
+|------|---------|
+| Run tests | `uv run pytest tests/ -v` |
+| Run Python | `uv run python script.py` |
+| Sync deps | `uv sync` |
+| Add package | `uv add <package>` |
+| Create venv | `uv venv` |
 
 ## Quick Start
 
 ```bash
-# Initialize project (first time)
+# Initialize project (first time - sets up venv too)
 ./scripts/init-project.sh
+
+# Or manually set up Python environment
+uv venv && uv sync
 
 # Process PRD
 /prd requirements/feature.md
@@ -92,8 +130,11 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 # Check status
 /status
 
-# Implement with TDD
+# Implement with TDD (uses uv run pytest internally)
 /tdd module-name
+
+# Run tests manually
+uv run pytest tests/ -v
 
 # Before context fills (70%+)
 /save-state

@@ -3,7 +3,9 @@
 
 Run this from the **project root** after copying `.claude/` into your repo:
 
-    python .claude/tools/quickstart_scaffold.py
+    uv run python .claude/tools/quickstart_scaffold.py
+
+Note: Always use 'uv run' to ensure proper virtual environment usage.
 """
 
 import json

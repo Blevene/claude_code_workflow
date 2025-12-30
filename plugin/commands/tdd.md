@@ -6,9 +6,28 @@ description: Test-Driven Development - write tests FIRST then implement
 
 Implement `$ARGUMENTS` using strict TDD methodology.
 
-## CRITICAL RULE
+## CRITICAL RULES
 
 **Write tests FIRST. Run them. They MUST fail. Then implement.**
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  ALWAYS use uv for Python execution.                        ║
+║  Commands: uv run pytest, uv run python, uv sync            ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+## Environment Setup (FIRST!)
+
+Before starting TDD, ensure the environment is ready:
+
+```bash
+# Verify venv exists (create if needed)
+ls .venv/ || uv venv
+
+# Sync dependencies (ensures pytest is available)
+uv sync
+```
 
 ## TDD Cycle
 
@@ -37,7 +56,7 @@ class TestModule:
 
 Run tests - they should FAIL or SKIP:
 ```bash
-pytest tests/$ARGUMENTS/ -v
+uv run pytest tests/$ARGUMENTS/ -v
 ```
 
 ### Phase 2: GREEN - Implement to Pass
@@ -46,7 +65,7 @@ Create `src/$ARGUMENTS/$ARGUMENTS.py` with minimal code to pass tests.
 
 Run tests - they should PASS:
 ```bash
-pytest tests/$ARGUMENTS/ -v
+uv run pytest tests/$ARGUMENTS/ -v
 ```
 
 ### Phase 3: REFACTOR

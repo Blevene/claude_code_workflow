@@ -10,6 +10,8 @@ TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // "{}"')
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
 
 # Paths
+# CLAUDE_PROJECT_DIR = user's project directory (for user files like ledgers)
+# CLAUDE_PLUGIN_ROOT = plugin installation directory (for plugin scripts)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 TRACKING_FILE="$PROJECT_DIR/.claude/cache/session-$SESSION_ID-files.txt"
 

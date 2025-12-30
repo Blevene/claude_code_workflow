@@ -1,7 +1,8 @@
 ---
 name: ux
-description: UX design - user flows, screens, states, and interactions. Use PROACTIVELY when designing user interfaces, defining interaction patterns, or creating UX specifications.
+description: UX design - user flows, screens, states, and interactions. Use PROACTIVELY when designing user interfaces, defining interaction patterns, or creating UX specifications. MUST BE USED before @frontend implements UI.
 tools: Read, Write, Glob, Grep
+model: inherit
 ---
 
 # UX Designer Agent

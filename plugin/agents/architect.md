@@ -1,7 +1,8 @@
 ---
 name: architect
-description: System architecture, contracts, technical boundaries, and design decisions. Use PROACTIVELY for architecture design, API contracts, data modeling, or technical tradeoffs.
+description: System architecture, contracts, technical boundaries, and design decisions. Use PROACTIVELY for architecture design, API contracts, data modeling, or technical tradeoffs. MUST BE USED before implementation begins.
 tools: Read, Write, Glob, Grep, Bash
+model: inherit
 ---
 
 # Architect Agent

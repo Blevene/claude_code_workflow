@@ -49,6 +49,71 @@ echo "✓ docs/design/"
 mkdir -p tests
 echo "✓ tests/"
 
+# Python virtual environment setup with uv
+echo ""
+echo "Setting up Python environment with uv..."
+
+# Check if uv is available
+if command -v uv &> /dev/null; then
+    # Create virtual environment if it doesn't exist
+    if [ ! -d ".venv" ]; then
+        uv venv
+        echo "✓ .venv/ (created with uv)"
+    else
+        echo "• .venv/ (already exists)"
+    fi
+    
+    # Create pyproject.toml if it doesn't exist
+    if [ ! -f "pyproject.toml" ]; then
+        cat > pyproject.toml << 'PYPROJECT'
+[project]
+name = "PROJECT_NAME"
+version = "0.1.0"
+description = "Project description"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.0",
+]
+PYPROJECT
+        # Update with project name
+        PROJECT_NAME=$(basename "$(pwd)")
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/PROJECT_NAME/$PROJECT_NAME/g" pyproject.toml
+        else
+            sed -i "s/PROJECT_NAME/$PROJECT_NAME/g" pyproject.toml
+        fi
+        echo "✓ pyproject.toml"
+    else
+        echo "• pyproject.toml (already exists)"
+    fi
+    
+    # Sync dependencies
+    echo "Syncing Python dependencies..."
+    uv sync 2>/dev/null || uv pip install pytest pytest-cov pytest-mock 2>/dev/null || true
+    echo "✓ Python dependencies synced"
+else
+    echo "⚠ uv not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    echo "  Then re-run this script to set up Python environment."
+fi
+
 # Create initial traceability matrix
 if [ ! -f traceability_matrix.json ]; then
     cat > traceability_matrix.json << 'EOF'
@@ -156,6 +221,10 @@ add_to_gitignore() {
 
 add_to_gitignore ".claude/cache/"
 add_to_gitignore "thoughts/shared/handoffs/"
+add_to_gitignore ".venv/"
+add_to_gitignore "__pycache__/"
+add_to_gitignore "*.pyc"
+add_to_gitignore ".pytest_cache/"
 # Note: keeping ledgers and plans in git can be useful
 
 echo ""
@@ -173,4 +242,9 @@ echo "Continuity tips:"
 echo "  • /save-state before /clear"
 echo "  • /handoff when ending session"
 echo "  • Watch context % in status line"
+echo ""
+echo "Python environment:"
+echo "  • Always use 'uv run' for Python/pytest"
+echo "  • Sync deps: 'uv sync'"
+echo "  • Add packages: 'uv add <package>'"
 echo ""

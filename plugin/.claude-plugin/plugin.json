@@ -1,9 +1,20 @@
 {
   "name": "claude-code-workflow",
   "description": "FAANG-style TDD workflow with session continuity - prevents agent degradation through ledgers and handoffs",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "author": {
     "name": "Claude Code Workflow Team"
   },
-  "repository": "https://github.com/blevene/claude_code_workflow"
+  "repository": "https://github.com/blevene/claude_code_workflow",
+  "homepage": "https://github.com/blevene/claude_code_workflow#readme",
+  "license": "MIT",
+  "keywords": [
+    "faang",
+    "tdd",
+    "workflow",
+    "continuity",
+    "multi-agent",
+    "test-driven-development"
+  ],
+  "hooks": "./hooks/hooks.json"
 }

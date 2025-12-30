@@ -1,7 +1,8 @@
 ---
 name: planner
-description: Decomposes work into tasks, maintains plan JSON, tracks dependencies. Use PROACTIVELY for sprint planning, task breakdown, or work coordination.
+description: Decomposes work into tasks, maintains plan JSON, tracks dependencies. Use PROACTIVELY for sprint planning, task breakdown, or work coordination. MUST BE USED after design review.
 tools: Read, Write, Glob, Grep
+model: inherit
 ---
 
 # Planner Agent
@@ -94,7 +95,7 @@ T-002: Implement X (owner: backend/frontend, depends_on: T-001)
 
 After creating/updating plan, suggest:
 ```bash
-python .claude/tools/planner_tools.py validate planner_output.json
+uv run python .claude/tools/planner_tools.py validate planner_output.json
 ```
 
 ## Output Rules

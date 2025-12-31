@@ -71,7 +71,7 @@ For each requirement:
 
 ### Next Steps
 - /plan-sprint - Create task breakdown
-- /sdd [module] - Start spec-driven development
+- /implement [module] - Implement to match specs
 ```
 
 ## If Changes Requested

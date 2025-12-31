@@ -1,17 +1,19 @@
 ---
-description: Debug failing evals - investigate root cause and fix implementation
+description: Structured debugging workflow for a specific failing eval - explicit invocation with detailed steps
 ---
 
 # Debug Failing Evals
 
 Investigate and fix failing evals for `$ARGUMENTS`.
 
+> **Note:** Use this command when you have a specific module with failing evals.
+> For general debugging patterns that auto-trigger, see the `debugging` skill.
+
 ## When to Use
 
-- Evals are failing after implementation
-- Unexpected behavior discovered
-- Regression in previously passing evals
-- Bug reported that needs investigation
+- You ran `/eval` and it failed
+- You have a specific module to debug
+- You want structured step-by-step debugging guidance
 
 ## Debug Workflow
 

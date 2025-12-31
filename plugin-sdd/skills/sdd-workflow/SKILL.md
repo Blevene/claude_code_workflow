@@ -38,7 +38,7 @@ Specs and evals encode requirements, not code structure. They verify *what* the 
 | 3 | `/plan-sprint` | Task breakdown | Only after `/design` |
 | 4 | `/ux-spec <REQ>` | UX specification | Only for UI features |
 | 5 | `/spec <REQ>` | Behavioral specs | Yes |
-| 6 | `/sdd <module>` | Specs -> Implementation -> Evals | Yes |
+| 6 | `/implement <module>` | Build code to match specs | Yes |
 | 7 | `/eval <module>` | Run evals to validate | Yes |
 | 8 | `/pre-review` | Final check | Yes |
 
@@ -46,17 +46,17 @@ Specs and evals encode requirements, not code structure. They verify *what* the 
 
 **With PRD:**
 ```
-/prd -> /review-design -> [/ux-spec] -> /spec -> /sdd -> /eval -> /pre-review
+/prd -> /review-design -> [/ux-spec] -> /spec -> /implement -> /eval -> /pre-review
 ```
 
 **Without PRD:**
 ```
-/design -> /review-design -> /plan-sprint -> [/ux-spec] -> /spec -> /sdd -> /eval -> /pre-review
+/design -> /review-design -> /plan-sprint -> [/ux-spec] -> /spec -> /implement -> /eval -> /pre-review
 ```
 
 **Backend-only:**
 ```
-/prd -> /review-design -> /spec -> /sdd -> /eval -> /pre-review
+/prd -> /review-design -> /spec -> /implement -> /eval -> /pre-review
 ```
 
 ## SDD Cycle
@@ -169,8 +169,8 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 # Create specs
 /spec REQ-001
 
-# Implement with SDD
-/sdd module-name
+# Implement to match specs
+/implement module-name
 
 # Run evals
 /eval module-name

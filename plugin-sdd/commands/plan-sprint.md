@@ -97,7 +97,7 @@ Add task IDs to requirements in `traceability_matrix.json`.
 
 ### Next Steps
 1. @spec-writer: Start with T-001
-2. Run /sdd [module] to begin development
+2. Run /implement [module] to begin development
 ```
 
 $ARGUMENTS

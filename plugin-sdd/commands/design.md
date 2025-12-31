@@ -91,7 +91,7 @@ Created:
 Next steps:
 1. /review-design - Get @overseer review
 2. /plan-sprint   - Create task breakdown
-3. /sdd [module]  - Start spec-driven development
+3. /implement [module]  - Implement to match specs
 ```
 
 $ARGUMENTS

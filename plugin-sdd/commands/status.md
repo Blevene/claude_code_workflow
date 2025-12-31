@@ -78,7 +78,7 @@ git status --short
 | 3. Planning | ✓/✗ | /plan-sprint |
 | 4. UX | ✓/✗ | /ux-spec |
 | 5. Specs | ✓/✗ | /spec |
-| 6. Implementation | ✓/✗ | /sdd |
+| 6. Implementation | ✓/✗ | /implement |
 | 7. Evals | ✓/✗ | /eval |
 | 8. Pre-review | ✓/✗ | /pre-review |
 

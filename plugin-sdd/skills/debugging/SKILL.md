@@ -1,16 +1,19 @@
 ---
 name: debugging
-description: Systematic debugging approach for finding and fixing issues. Auto-triggers for bug investigation, eval failures, error analysis, or troubleshooting.
+description: Debugging patterns and methodology - AUTO-TRIGGERS when debugging emerges naturally. For explicit structured debugging of a specific module, use /debug command instead.
 ---
 
 # Debugging Skill
 
-## When to Use
-- Investigating bugs or unexpected behavior
-- Analyzing eval failures
-- Troubleshooting errors
-- Understanding why code doesn't match spec
-- Regression in previously passing evals
+> **This skill auto-triggers** when debugging patterns emerge in conversation.
+> For explicit, structured debugging of a specific failing eval, use `/debug <module>`.
+
+## When This Auto-Triggers
+
+- Discussion of bugs or unexpected behavior
+- Mentioning errors or exceptions
+- Questions about why code doesn't match spec
+- Troubleshooting in progress
 
 ## SDD Debugging Principle
 

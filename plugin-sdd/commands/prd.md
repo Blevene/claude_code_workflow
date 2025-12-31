@@ -68,6 +68,6 @@ Report:
 - Requirements extracted (REQ IDs)
 - Design doc path
 - Task count and SDD triplets (spec + impl + eval)
-- Next steps: `/review-design`, `/sdd [module]`
+- Next steps: `/review-design`, `/implement [module]`
 
 $ARGUMENTS

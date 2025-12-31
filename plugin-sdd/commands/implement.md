@@ -1,10 +1,10 @@
 ---
-description: Spec-Driven Development - write specs FIRST then implement then run evals
+description: Implement module to match behavioral specs - the core SDD build phase
 ---
 
-# Spec-Driven Development
+# Implement Module
 
-Implement `$ARGUMENTS` using strict SDD methodology.
+Implement `$ARGUMENTS` to match its behavioral specifications.
 
 ## CRITICAL RULES
 

@@ -5,7 +5,7 @@ import argparse, json
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Schema is in the same directory as this tool (plugin/tools/../schemas/)
+# Schema is in the same directory as this tool (plugin-sdd/tools/../schemas/)
 TOOL_DIR = Path(__file__).parent
 SCHEMA_PATH = TOOL_DIR.parent / "schemas" / "planner_task_schema.json"
 

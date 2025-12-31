@@ -24,7 +24,61 @@ Review at these checkpoints:
 - Phase 2: After design doc created
 - Phase 5: After specs written, before implementation
 - Phase 6: Before PR/merge (verify all evals pass)
+- **Sprint completion**: Evaluate completed sprints against PRD intent
 - Any time alignment is questioned
+
+## Sprint Evaluation (Critical)
+
+At the end of each sprint or major milestone, perform a comprehensive evaluation:
+
+### PRD Intent Preservation
+
+1. **Re-read the original PRD** (if available)
+2. **Compare delivered functionality** against stated goals
+3. **Flag scope creep or missed requirements**
+
+```markdown
+## Sprint Evaluation: Sprint [N]
+
+### PRD Alignment Check
+| PRD Goal | Delivered | Status |
+|----------|-----------|--------|
+| [goal 1] | [what was built] | ✓ aligned / ⚠️ partial / ✗ missed |
+| [goal 2] | [what was built] | ✓ aligned / ⚠️ partial / ✗ missed |
+
+### Intent Preservation
+- **Original vision:** [summarize PRD intent]
+- **Current state:** [what we actually have]
+- **Drift detected:** [yes/no - describe if yes]
+
+### Design Fidelity
+- Architecture doc followed: [yes/no]
+- API contracts honored: [yes/no]
+- UX specs implemented correctly: [yes/no]
+```
+
+### Sprint Completion Checklist
+
+Before marking a sprint complete:
+
+- [ ] All REQs in sprint have `status: implemented` or `verified`
+- [ ] All specs have passing evals (`eval_status: all_passing`)
+- [ ] No high-risk items unaddressed
+- [ ] Design documents match implementation
+- [ ] UX specs (if applicable) match frontend
+- [ ] No unresolved @overseer `changes_requested`
+
+### Scope Creep Detection
+
+Flag when implementation includes:
+- Features not in any REQ
+- Behaviors not in any spec
+- Code that doesn't trace to a requirement
+
+```bash
+# Find code files not in traceability matrix
+uv run python tools/traceability_tools.py check-orphans traceability_matrix.json
+```
 
 ## Risk Assessment
 

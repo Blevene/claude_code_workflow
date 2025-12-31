@@ -78,7 +78,7 @@ Properties that must ALWAYS hold:
 
 ### 3. Create Eval Script
 
-Create `evals/[module]/eval_spec_001.py` with tests for each behavior.
+Create `evals/[module]/eval_spec_001.py` with evals for each behavior.
 
 ### 4. Update Traceability
 

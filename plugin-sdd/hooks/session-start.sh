@@ -122,7 +122,7 @@ $PYTHON_ENV_STATUS
 
 ⚠️  REMINDER: Always use 'uv run' for Python execution:
    • Evals:  uv run python tools/run_evals.py --all
-   • Tests:  uv run pytest tests/ -v
+   • Single: uv run python evals/module/eval_spec_001.py
    • Code:   uv run python script.py
    • Deps:   uv sync
 

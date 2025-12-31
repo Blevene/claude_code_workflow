@@ -57,7 +57,8 @@ uv sync
 ```bash
 # CORRECT: Use uv run for all Python execution
 uv run python src/module/script.py
-uv run pytest tests/
+uv run python evals/module/eval_spec_001.py  # Run evals
+uv run python tools/run_evals.py --all       # Run all evals
 
 # WRONG: Never run directly
 # python src/module/script.py  ❌

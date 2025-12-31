@@ -66,8 +66,28 @@ Specs and evals encode requirements, not code structure. They verify *what* the 
 2. @spec-writer creates evals -> validation criteria
 3. @backend/@frontend implements -> code written to spec
 4. Evals run -> validate implementation matches spec
-5. Iterate if eval fails -> fix implementation, not specs
+5. If evals fail -> debug and fix (see below)
 ```
+
+## Fix/Iterate Cycle
+
+When evals fail, use this cycle:
+
+```
+/eval fails → /debug → investigate → fix → /eval → repeat until pass
+```
+
+| Step | Action | Command |
+|------|--------|---------|
+| 1 | Run evals | `/eval <module>` |
+| 2 | If failing, debug | `/debug <module>` |
+| 3 | Read spec | Check `specs/module/SPEC-*.md` |
+| 4 | Compare expected vs actual | From eval output |
+| 5 | Fix implementation | Edit code to match spec |
+| 6 | Re-run evals | `/eval <module>` |
+| 7 | Check regressions | `uv run python tools/run_evals.py --all` |
+
+**Key principle:** Fix the implementation, not the spec (unless spec is wrong).
 
 ## Continuity System (CRITICAL)
 
@@ -127,7 +147,7 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 | Task | Command |
 |------|---------|
 | Run evals | `uv run python tools/run_evals.py --all` |
-| Run tests | `uv run pytest tests/ -v` |
+| Run single eval | `uv run python evals/module/eval_spec_001.py` |
 | Run Python | `uv run python script.py` |
 | Sync deps | `uv sync` |
 
@@ -136,6 +156,9 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 ```bash
 # Initialize project
 /init
+
+# Verify plugin health
+/check
 
 # Process PRD
 /prd requirements/feature.md
@@ -151,6 +174,9 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 
 # Run evals
 /eval module-name
+
+# If evals fail, debug
+/debug module-name
 
 # Before context fills (70%+)
 /save-state

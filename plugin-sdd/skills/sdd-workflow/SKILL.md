@@ -1,6 +1,6 @@
 ---
 name: sdd-workflow
-description: Spec-Driven Development multi-agent workflow with session continuity. Auto-triggers for production features, PRDs, design docs, specs, evals, feature implementation, sprint planning, code review, requirements, or architecture. Coordinates @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, @spec-writer, @overseer agents. Prevents context degradation through ledgers and handoffs.
+description: Spec-Driven Development workflow coordination. Auto-triggers for PRD processing, spec-to-implementation cycles, multi-agent handoffs, or session continuity (/save-state, /handoff, /resume). Coordinates @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, @spec-writer, @overseer agents.
 ---
 
 # Spec-Driven Development Workflow + Continuity

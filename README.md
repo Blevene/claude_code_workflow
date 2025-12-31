@@ -281,7 +281,7 @@ Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
 |-----------|-------|---------|
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@spec-writer**, @overseer |
 | **Skills** | 10 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database, **onboarding** |
-| **Commands** | 15 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/spec**, **/implement**, **/eval**, **/debug**, /pre-review, /save-state, /handoff, /resume, /status, /check |
+| **Commands** | 16 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/spec**, **/implement**, **/eval**, **/debug**, /pre-review, /save-state, /handoff, /resume, /status, /check |
 | **Hooks** | 5 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop |
 | **Schemas** | 4 | traceability_matrix, planner_task, **spec_schema**, **eval_result_schema** |
 
@@ -382,6 +382,7 @@ plugin-sdd/
 ├── tools/
 │   ├── run_evals.py        # Run eval scripts
 │   ├── traceability_tools.py  # Matrix management
+│   ├── planner_tools.py    # Validate plan JSON
 │   ├── eval_coverage.py    # Verify specs have evals
 │   └── spec_linter.py      # Validate spec format
 └── schemas/
@@ -393,6 +394,7 @@ plugin-sdd/
 |------|---------|---------|
 | `run_evals.py` | `uv run python tools/run_evals.py --all` | Execute all eval scripts |
 | `traceability_tools.py` | `uv run python tools/traceability_tools.py check-gaps ...` | Manage traceability matrix |
+| `planner_tools.py` | `uv run python tools/planner_tools.py validate ...` | Validate plan JSON files |
 | `eval_coverage.py` | `uv run python tools/eval_coverage.py` | Verify every spec has evals |
 | `spec_linter.py` | `uv run python tools/spec_linter.py` | Validate spec format |
 

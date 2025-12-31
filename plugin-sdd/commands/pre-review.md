@@ -28,25 +28,41 @@ Verify:
 - All REQs have code
 - All evals are passing
 
-### 3. Run Linting (if configured)
+### 3. Check Eval Coverage
+
+```bash
+uv run python tools/eval_coverage.py
+```
+
+Verify every spec has at least one eval.
+
+### 4. Lint Specs
+
+```bash
+uv run python tools/spec_linter.py
+```
+
+Verify all specs have proper format (REQ IDs, WHEN/THEN, etc).
+
+### 5. Run Code Linting (if configured)
 
 ```bash
 uv run ruff check src/ --fix 2>/dev/null || echo "Ruff not configured"
 uv run mypy src/ 2>/dev/null || echo "MyPy not configured"
 ```
 
-### 4. Check Git Status
+### 6. Check Git Status
 
 ```bash
 git status --short
 git diff --stat
 ```
 
-### 5. Verify Documentation
+### 7. Verify Documentation
 
 Check that design docs match implementation.
 
-### 6. Output Summary
+### 8. Output Summary
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -66,6 +82,18 @@ Status: ✅ ALL PASS / ❌ FAILURES
 - With code: [count]
 - Gaps: [list or "none"]
 Status: ✅ COMPLETE / ❌ GAPS FOUND
+
+## Eval Coverage
+- Specs: [count]
+- Covered: [count]
+- Uncovered: [list or "none"]
+Status: ✅ FULL COVERAGE / ❌ GAPS FOUND
+
+## Spec Quality
+- Specs linted: [count]
+- Errors: [count]
+- Warnings: [count]
+Status: ✅ VALID / ❌ ISSUES FOUND
 
 ## Code Quality
 - Linting: ✅ / ⚠️ warnings / ❌ errors

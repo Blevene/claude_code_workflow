@@ -280,7 +280,7 @@ Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
 | Component | Count | Purpose |
 |-----------|-------|---------|
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@spec-writer**, @overseer |
-| **Skills** | 9 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database |
+| **Skills** | 10 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database, **onboarding** |
 | **Commands** | 15 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/spec**, **/implement**, **/eval**, **/debug**, /pre-review, /save-state, /handoff, /resume, /status, /check |
 | **Hooks** | 5 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop |
 | **Schemas** | 4 | traceability_matrix, planner_task, **spec_schema**, **eval_result_schema** |
@@ -370,7 +370,8 @@ plugin-sdd/
 │   └── check.md            # Plugin health check
 ├── skills/                 # Auto-triggering capabilities
 │   ├── sdd-workflow/       # Workflow coordination
-│   └── debugging/          # Debug patterns (auto-triggers)
+│   ├── debugging/          # Debug patterns (auto-triggers)
+│   └── onboarding/         # Brownfield repo adoption
 ├── guides/                 # Reference documentation
 │   └── python-environment.md
 ├── templates/              # Reusable code templates
@@ -379,9 +380,30 @@ plugin-sdd/
 ├── hooks/
 ├── scripts/
 ├── tools/
-│   └── run_evals.py
+│   ├── run_evals.py        # Run eval scripts
+│   ├── traceability_tools.py  # Matrix management
+│   ├── eval_coverage.py    # Verify specs have evals
+│   └── spec_linter.py      # Validate spec format
 └── schemas/
 ```
+
+### Tools
+
+| Tool | Command | Purpose |
+|------|---------|---------|
+| `run_evals.py` | `uv run python tools/run_evals.py --all` | Execute all eval scripts |
+| `traceability_tools.py` | `uv run python tools/traceability_tools.py check-gaps ...` | Manage traceability matrix |
+| `eval_coverage.py` | `uv run python tools/eval_coverage.py` | Verify every spec has evals |
+| `spec_linter.py` | `uv run python tools/spec_linter.py` | Validate spec format |
+
+### Brownfield Onboarding
+
+For existing codebases, the `onboarding` skill auto-triggers when discussing:
+- "I have an existing codebase..."
+- "How do I add SDD to my project?"
+- "Retrofitting specs to legacy code"
+
+Key principle: **Don't boil the ocean.** Adopt SDD incrementally—full SDD for new features, gradual retrofit for critical existing code.
 
 ### Sprint Evaluation (@overseer)
 

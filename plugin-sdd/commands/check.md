@@ -39,6 +39,8 @@ echo "Checking traceability..."
 echo "Checking tools..."
 uv run python tools/traceability_tools.py --help 2>/dev/null && echo "✓ traceability_tools.py" || echo "✗ traceability_tools.py not available"
 uv run python tools/run_evals.py --help 2>/dev/null && echo "✓ run_evals.py" || echo "✗ run_evals.py not available"
+uv run python tools/eval_coverage.py --help 2>/dev/null && echo "✓ eval_coverage.py" || echo "✗ eval_coverage.py not available"
+uv run python tools/spec_linter.py --help 2>/dev/null && echo "✓ spec_linter.py" || echo "✗ spec_linter.py not available"
 ```
 
 ## Output
@@ -68,6 +70,8 @@ uv run python tools/run_evals.py --help 2>/dev/null && echo "✓ run_evals.py" |
 ## Tools
 ✓ traceability_tools.py
 ✓ run_evals.py
+✓ eval_coverage.py
+✓ spec_linter.py
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ PLUGIN HEALTHY

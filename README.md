@@ -281,16 +281,16 @@ Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
 |-----------|-------|---------|
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@spec-writer**, @overseer |
 | **Skills** | 9 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database |
-| **Commands** | 14 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/sdd**, **/spec**, **/eval**, /pre-review, /save-state, /handoff, /resume, /status |
+| **Commands** | 15 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/spec**, **/implement**, **/eval**, **/debug**, /pre-review, /save-state, /handoff, /resume, /status, /check |
 | **Hooks** | 5 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop |
 | **Schemas** | 4 | traceability_matrix, planner_task, **spec_schema**, **eval_result_schema** |
 
 ### Workflow
 
 ```
-/prd ──→ /review-design ──→ [/ux-spec] ──→ /spec ──→ /sdd ──→ /eval ──→ /pre-review
-  │                             │            │
-  └─ creates tasks              │            └─ creates behavioral specs
+/prd ──→ /review-design ──→ [/ux-spec] ──→ /spec ──→ /implement ──→ /eval ──→ /pre-review
+  │                             │            │                        │
+  └─ creates tasks              │            └─ creates specs         └─ if fails: /debug
                                 └─ optional (UI features only)
 ```
 
@@ -340,8 +340,10 @@ class SpecEval:
 | Command | Description |
 |---------|-------------|
 | `/spec <REQ-ID>` | Create behavioral specification for requirement |
-| `/sdd <module>` | Implement module to match specs |
+| `/implement <module>` | Implement module to match specs |
 | `/eval <module>` | Run evals to validate implementation |
+| `/debug <module>` | Structured debugging for failing evals |
+| `/check` | Plugin health check |
 
 ### Directory Structure
 
@@ -350,7 +352,7 @@ plugin-sdd/
 ├── .claude-plugin/
 │   ├── plugin.json
 │   └── settings.json
-├── agents/
+├── agents/                 # 9 specialized agents
 │   ├── orchestrator.md
 │   ├── pm.md
 │   ├── planner.md
@@ -358,21 +360,27 @@ plugin-sdd/
 │   ├── ux.md
 │   ├── frontend.md
 │   ├── backend.md
-│   ├── spec-writer.md     # SDD spec/eval writer
-│   └── overseer.md        # Enhanced with sprint evaluation
-├── commands/
-│   ├── sdd.md             # SDD implementation command
-│   ├── spec.md            # Create behavioral spec
-│   └── eval.md            # Run evals
-├── skills/
-│   └── sdd-workflow/      # SDD workflow skill
+│   ├── spec-writer.md      # SDD spec/eval writer
+│   └── overseer.md         # Governance + sprint evaluation
+├── commands/               # Explicit workflow commands
+│   ├── implement.md        # Build to match specs
+│   ├── spec.md             # Create behavioral spec
+│   ├── eval.md             # Run evals
+│   ├── debug.md            # Structured debugging
+│   └── check.md            # Plugin health check
+├── skills/                 # Auto-triggering capabilities
+│   ├── sdd-workflow/       # Workflow coordination
+│   └── debugging/          # Debug patterns (auto-triggers)
+├── guides/                 # Reference documentation
+│   └── python-environment.md
+├── templates/              # Reusable code templates
+│   ├── eval-template.py
+│   └── eval-property-template.py
 ├── hooks/
 ├── scripts/
 ├── tools/
-│   └── run_evals.py       # Eval runner
+│   └── run_evals.py
 └── schemas/
-    ├── spec_schema.json
-    └── eval_result_schema.json
 ```
 
 ### Sprint Evaluation (@overseer)
@@ -394,6 +402,127 @@ The `@overseer` agent in SDD evaluates completed sprints against PRD intent:
 | All Passing | 5 |
 | Partial | 1 |
 | Failing | 0 |
+```
+
+### Skill & Command Triggers
+
+The SDD plugin uses two trigger mechanisms:
+
+| Type | Mechanism | Example |
+|------|-----------|---------|
+| **Commands** | Explicit invocation | `/implement auth` - user requests implementation |
+| **Skills** | Auto-trigger on context | `debugging` skill activates when discussing bugs |
+
+**sdd-workflow skill auto-triggers for:**
+- PRD processing and design document creation
+- Spec-to-implementation cycles
+- Multi-agent handoffs between phases
+- Session continuity (`/save-state`, `/handoff`, `/resume`)
+
+**debugging skill auto-triggers for:**
+- Discussion of bugs or unexpected behavior
+- Mentioning errors or exceptions
+- Questions about why code doesn't match spec
+
+**Use `/debug <module>` for explicit, structured debugging of a specific failing eval.**
+
+---
+
+## Plugin Architecture
+
+### Component Interaction Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              USER INTERACTION                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐             │
+│   │  /prd    │───▶│ /review- │───▶│  /spec   │───▶│/implement│──┐          │
+│   │          │    │  design  │    │          │    │          │  │          │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │          │
+│                                                                  ▼          │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐             │
+│   │  /check  │    │  /debug  │◀───│  /eval   │◀───│   pass?  │             │
+│   │ (health) │    │ (if fail)│    │          │    │          │             │
+│   └──────────┘    └──────────┘    └──────────┘    └────┬─────┘             │
+│                         │                              │ yes               │
+│                         ▼                              ▼                   │
+│                   ┌──────────┐                  ┌──────────┐               │
+│                   │   fix    │─────────────────▶│/pre-review│              │
+│                   └──────────┘                  └──────────┘               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              AGENT COORDINATION                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────┐                                                           │
+│   │@orchestrator│◀─────────────── Routes work, manages handoffs             │
+│   └──────┬──────┘                                                           │
+│          │                                                                  │
+│   ┌──────┴──────────────────────────────────────────────────────┐          │
+│   │                                                              │          │
+│   ▼              ▼              ▼              ▼                ▼          │
+│ ┌────┐        ┌────┐        ┌────┐        ┌────┐          ┌────────┐       │
+│ │@pm │        │@planner│    │@architect│  │@spec-writer│  │@overseer│      │
+│ └────┘        └────┘        └────┘        └────┘          └────────┘       │
+│   │              │              │              │                │          │
+│   │ requirements │ tasks        │ design       │ specs+evals    │ governance│
+│   ▼              ▼              ▼              ▼                ▼          │
+│ ┌────┐        ┌────┐        ┌────┐        ┌────────────┐                   │
+│ │@ux │        │@frontend│   │@backend│   │   evals/   │                    │
+│ └────┘        └────┘        └────┘        └────────────┘                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              SKILL AUTO-TRIGGERS                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  User message ──▶ Pattern matching ──▶ Skill activation                    │
+│                                                                             │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐         │
+│  │  sdd-workflow   │    │    debugging    │    │   code-review   │         │
+│  ├─────────────────┤    ├─────────────────┤    ├─────────────────┤         │
+│  │ PRD processing  │    │ Bug discussion  │    │ PR review       │         │
+│  │ Spec cycles     │    │ Error mentions  │    │ Code quality    │         │
+│  │ Agent handoffs  │    │ Troubleshooting │    │ Best practices  │         │
+│  │ /save-state     │    │                 │    │                 │         │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              HOOK LIFECYCLE                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SessionStart ──▶ UserPromptSubmit ──▶ PostToolUse ──▶ SubagentStop        │
+│       │                  │                  │               │               │
+│       ▼                  ▼                  ▼               ▼               │
+│  Load ledger       Context check      Track edits      Create handoff      │
+│  Load handoff      Skill hints        Update matrix    Update ledger       │
+│  Verify env                                                                 │
+│                                                                             │
+│  PreCompact (before context compaction)                                     │
+│       │                                                                     │
+│       ▼                                                                     │
+│  Auto-save state, warn about degradation                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+```
+requirements/     docs/design/      specs/           src/              evals/
+    PRD    ──────▶  Design   ──────▶  SPEC-*  ──────▶  Code  ◀────────  eval_*
+     │                │                 │               │                 │
+     └────────────────┴─────────────────┴───────────────┴─────────────────┘
+                                        │
+                                        ▼
+                              traceability_matrix.json
 ```
 
 ---

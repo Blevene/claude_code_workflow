@@ -151,6 +151,13 @@
             },
             "description": "Implementation file paths"
           },
+          "tests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Unit test file paths (optional, for low-level testing)"
+          },
           "notes": {
             "type": "array",
             "items": {

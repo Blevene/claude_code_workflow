@@ -128,7 +128,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Eval script file paths (e.g., evals/auth/eval_spec_001.py)"
+            "description": "Behavioral eval scripts - PRIMARY validation. Test behavior via Given/When/Then (e.g., evals/auth/eval_spec_001.py)"
           },
           "ux_artifacts": {
             "type": "array",
@@ -156,7 +156,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Unit test file paths (optional, for low-level testing)"
+            "description": "Unit tests - OPTIONAL supplement for complex internals or legacy code (e.g., tests/auth/test_crypto.py)"
           },
           "notes": {
             "type": "array",

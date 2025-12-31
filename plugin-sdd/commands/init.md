@@ -57,11 +57,13 @@ dev-dependencies = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "pytest-mock>=3.0",
+    "hypothesis>=6.0",
 ]
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers"
 testpaths = ["tests", "evals"]
+python_classes = ["Test*", "Spec*", "PropertyEval*"]
 EOF
 
 # Sync dependencies

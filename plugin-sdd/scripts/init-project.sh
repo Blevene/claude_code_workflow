@@ -93,12 +93,13 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "pytest-mock>=3.0",
+    "hypothesis>=6.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "evals"]
 python_files = ["test_*.py", "eval_*.py"]
-python_classes = ["Test*", "Spec*"]
+python_classes = ["Test*", "Spec*", "PropertyEval*"]
 python_functions = ["test_*", "eval_*"]
 
 [tool.uv]
@@ -106,6 +107,7 @@ dev-dependencies = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "pytest-mock>=3.0",
+    "hypothesis>=6.0",
 ]
 PYPROJECT
         # Update with project name
@@ -122,7 +124,7 @@ PYPROJECT
 
     # Sync dependencies
     echo "Syncing Python dependencies..."
-    uv sync 2>/dev/null || uv pip install pytest pytest-cov pytest-mock 2>/dev/null || true
+    uv sync 2>/dev/null || uv pip install pytest pytest-cov pytest-mock hypothesis 2>/dev/null || true
     echo "✓ Python dependencies synced"
 else
     echo "⚠ uv not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"

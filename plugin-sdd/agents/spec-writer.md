@@ -334,6 +334,60 @@ Translate requirement language directly into spec properties:
 - "Always" / "Never" / "For any valid input" → Properties that must hold universally
 - Round-trip, idempotence, invariant preservation → Stronger guarantees than example tests
 
+### Property-Based Evals with Hypothesis
+
+Use `hypothesis` for properties that must hold for ANY valid input:
+
+```python
+from hypothesis import given, strategies as st, settings
+from dataclasses import dataclass
+
+@dataclass
+class EvalResult:
+    passed: bool
+    spec_id: str
+    description: str
+    expected: str
+    actual: str = None
+    error: str = None
+
+class PropertyEval:
+    """Property-based evals using hypothesis."""
+
+    spec_id = "SPEC-001"
+
+    @given(st.text(min_size=1, max_size=100))
+    def eval_round_trip(self, value: str):
+        """Property: encode then decode returns original."""
+        encoded = module.encode(value)
+        decoded = module.decode(encoded)
+        assert decoded == value
+
+    @given(st.integers(min_value=0))
+    def eval_idempotent(self, value: int):
+        """Property: normalizing twice equals normalizing once."""
+        once = module.normalize(value)
+        twice = module.normalize(once)
+        assert once == twice
+
+    @given(st.lists(st.integers()))
+    def eval_invariant_preserved(self, items: list):
+        """Property: sum is preserved after shuffle."""
+        original_sum = sum(items)
+        shuffled = module.shuffle(items)
+        assert sum(shuffled) == original_sum
+```
+
+**When to use hypothesis:**
+
+| Requirement Pattern | Property Type | Example |
+|---------------------|---------------|---------|
+| "for any valid X" | Universal quantifier | `@given(valid_inputs())` |
+| "always returns" | Invariant | Assert property holds for all generated inputs |
+| "encode/decode" | Round-trip | `decode(encode(x)) == x` |
+| "calling twice" | Idempotence | `f(f(x)) == f(x)` |
+| "order doesn't matter" | Commutativity | `f(a, b) == f(b, a)` |
+
 ### Separation of Concerns
 
 Specs should be written from requirements without knowledge of implementation. Implementation satisfies specs without modifying them. If a spec needs to change when you refactor (not change behavior), it was coupled to implementation.

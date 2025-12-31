@@ -1,53 +1,37 @@
 # Claude Code Workflow
 
-**FAANG-style TDD workflow + Session continuity + Auto-invoked skills = Agents that don't degrade.**
+**Enterprise-grade development workflows + Session continuity + Auto-invoked skills = Agents that don't degrade.**
 
-A Claude Code plugin that enforces enterprise-grade, test-driven development through a coordinated multi-agent team, with session continuity to prevent context degradation.
+A Claude Code plugin system that enforces disciplined development through coordinated multi-agent teams, with session continuity to prevent context degradation.
 
 [![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/blevene/claude_code_workflow)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## Table of Contents
+## Two Plugins Available
 
-- [What This Does](#what-this-does)
-- [The Problem This Solves](#the-problem-this-solves)
-- [Core Principles](#core-principles)
-- [Quick Start](#quick-start)
-- [Workflow Example](#workflow-example)
-- [Commands](#commands)
-- [Agents](#agents)
-- [Skills](#skills)
-- [Continuity System](#continuity-system)
-- [Python Environment](#python-environment)
-- [Tools](#tools)
-- [Directory Structure](#directory-structure)
-- [Customization](#customization)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
+| Plugin | Paradigm | Key Agent | Best For |
+|--------|----------|-----------|----------|
+| **`plugin-tdd/`** | Test-Driven Development | `@qa` writes tests first | Traditional testing workflows |
+| **`plugin-sdd/`** | Spec-Driven Development | `@spec-writer` writes specs + evals first | Behavioral specifications |
+
+**Recommendation:** Use `plugin-sdd/` for new projects. It emphasizes behavioral specifications and meaningful evals that validate *what* the system does, not *how* it does it.
 
 ---
 
-## What This Does
+## Table of Contents
 
-This plugin adds to Claude Code:
-
-| Component | Count | Purpose |
-|-----------|-------|---------|
-| **Agents** | 9 | Specialized AI team members (@qa, @backend, @architect, etc.) |
-| **Skills** | 9 | Auto-invoked expertise (debugging, code review, security, etc.) |
-| **Commands** | 13 | Slash commands for workflow phases |
-| **Hooks** | 5 | Lifecycle automation (continuity, context warnings) |
-
-### What It Enforces
-
-- ✅ **Design-first development** - No code without architecture docs
-- ✅ **Test-driven development (TDD)** - Tests written BEFORE implementation  
-- ✅ **Full traceability** - Requirements → Design → Code → Tests all linked
-- ✅ **Governance checkpoints** - Risk assessment at each phase
-- ✅ **Session continuity** - Ledgers and handoffs prevent agent degradation
-- ✅ **Python environment** - Always uses `uv run` for consistent execution
+- [The Problem This Solves](#the-problem-this-solves)
+- [Core Principles (Shared)](#core-principles-shared)
+- [Quick Start](#quick-start)
+- [Plugin: TDD (plugin-tdd)](#plugin-tdd-plugin-tdd)
+- [Plugin: SDD (plugin-sdd)](#plugin-sdd-plugin-sdd)
+- [Continuity System](#continuity-system)
+- [Python Environment](#python-environment)
+- [Customization](#customization)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
 ---
 
@@ -59,7 +43,7 @@ When Claude Code runs low on context, it compacts (summarizes) the conversation.
 Session Start: Full context, high signal
     ↓ work, work, work
 Compaction 1: Some detail lost
-    ↓ work, work, work  
+    ↓ work, work, work
 Compaction 2: Context getting murky
     ↓ work, work, work
 Compaction 3: Now working with compressed noise
@@ -70,21 +54,15 @@ Compaction 3: Now working with compressed noise
 
 ---
 
-## Core Principles
+## Core Principles (Shared)
+
+Both plugins share these principles:
 
 ### 1. Design First
 
 No implementation without a design document in `docs/design/`. The workflow blocks coding until architecture is defined.
 
-### 2. Test-Driven Development
-
-```
-1. @qa writes tests → tests FAIL (RED)
-2. @backend/@frontend implements → tests PASS (GREEN)  
-3. Refactor → tests still PASS
-```
-
-### 3. Full Traceability
+### 2. Full Traceability
 
 Everything links via `traceability_matrix.json`:
 
@@ -94,10 +72,10 @@ REQ-001 (requirement)
   ├── .design/REQ-001-ux.json (UX spec)
   ├── tasks: [T-001, T-002] (sprint tasks)
   ├── src/auth/login.py (code)
-  └── tests/auth/test_login.py (tests)
+  └── specs/ or tests/ (validation)
 ```
 
-### 4. Clear, Don't Compact
+### 3. Clear, Don't Compact
 
 ```
 /save-state    # Updates ledger
@@ -105,7 +83,7 @@ REQ-001 (requirement)
                # SessionStart hook loads ledger + handoff automatically
 ```
 
-### 5. EARS Requirements
+### 4. EARS Requirements
 
 | Type | Template |
 |------|----------|
@@ -113,6 +91,10 @@ REQ-001 (requirement)
 | State-driven | `WHILE <state> the system SHALL <response>.` |
 | Unconditional | `The system SHALL <response>.` |
 | Optional | `WHERE <condition>, the system SHALL <response>.` |
+
+### 5. Python Environment
+
+Always use `uv run` for Python execution - never run `python` or `pytest` directly.
 
 ---
 
@@ -134,227 +116,438 @@ git clone https://github.com/blevene/claude_code_workflow.git
 cd claude_code_workflow
 ```
 
-**2. Make hooks executable:**
+**2. Choose your plugin and make hooks executable:**
 
 ```bash
-chmod +x plugin/hooks/*.sh
-chmod +x plugin/scripts/*.sh
+# For SDD (recommended)
+chmod +x plugin-sdd/hooks/*.sh
+chmod +x plugin-sdd/scripts/*.sh
+
+# For TDD
+chmod +x plugin-tdd/hooks/*.sh
+chmod +x plugin-tdd/scripts/*.sh
 ```
 
 **3. Install the plugin (choose one method):**
 
 #### Option A: Permanent Install (Recommended)
 
-Copy the plugin to Claude's plugin directory:
-
-```bash
-# Create plugins directory if it doesn't exist
-mkdir -p ~/.claude/plugins
-
-# Copy plugin
-cp -r plugin ~/.claude/plugins/claude-code-workflow
-
-# Now just run claude normally - plugin loads automatically
-claude
-```
-
-Or use a symlink (easier to update via git pull):
-
 ```bash
 mkdir -p ~/.claude/plugins
-ln -s "$(pwd)/plugin" ~/.claude/plugins/claude-code-workflow
+
+# For SDD (recommended)
+ln -s "$(pwd)/plugin-sdd" ~/.claude/plugins/claude-code-workflow
+
+# OR for TDD
+ln -s "$(pwd)/plugin-tdd" ~/.claude/plugins/claude-code-workflow
 ```
 
-#### Option B: Per-Session (for testing/development)
+#### Option B: Per-Session
 
 ```bash
-claude --plugin-dir ./plugin
-```
+# For SDD
+claude --plugin-dir ./plugin-sdd
 
-Or create a shell alias:
-
-```bash
-# Add to ~/.zshrc or ~/.bashrc
-alias claude-faang='claude --plugin-dir /path/to/claude_code_workflow/plugin'
+# For TDD
+claude --plugin-dir ./plugin-tdd
 ```
 
 **4. Verify installation:**
 
 Type `/help` - you should see commands under the `claude-code-workflow` namespace.
 
-### Initialize a Project
-
-From within Claude Code (after running with `--plugin-dir`):
+**5. Initialize a project:**
 
 ```bash
 /init
 ```
 
-Or directly from shell:
-
-```bash
-/path/to/claude_code_workflow/plugin/scripts/init-project.sh
-```
-
-This creates:
-
-| Directory/File | Purpose |
-|----------------|---------|
-| `thoughts/ledgers/` | Continuity ledgers (survives `/clear`) |
-| `thoughts/shared/handoffs/` | Session handoffs |
-| `thoughts/shared/plans/` | Implementation plans |
-| `traceability_matrix.json` | Requirement tracking |
-| `.venv/` | Python virtual environment (via uv) |
-| `pyproject.toml` | Python project configuration |
-
 ---
 
-## Workflow Example
+## Plugin: TDD (plugin-tdd)
 
-Here's a typical session using the FAANG workflow:
+### Philosophy
 
-```bash
-# Start Claude (if installed permanently, just run 'claude')
-claude
+Test-Driven Development: Write tests BEFORE implementation.
 
-# 0. Initialize project (first time only)
-> /init
-
-# 1. Process a PRD into requirements, design, and tasks
-> /prd requirements/user-auth.md
-
-# 2. Review the design for completeness
-> /review-design
-
-# 3. (Optional) Create UX spec for UI features
-> /ux-spec REQ-001
-
-# 4. Implement with TDD (tests first!)
-> /tdd auth/login
-
-# Context at 75% - save state before it degrades
-> /save-state
-> /clear
-
-# Fresh context, ledger auto-loaded - continue
-> /status
-> /tdd auth/validation
-
-# 5. Pre-submission checks before PR
-> /pre-review
-
-# End of session
-> /handoff
+```
+1. @qa writes tests → tests FAIL (RED)
+2. @backend/@frontend implements → tests PASS (GREEN)
+3. Refactor → tests still PASS
 ```
 
-**Note:** `/prd` creates tasks automatically, so `/plan-sprint` is only needed after `/design` (when you don't have a PRD).
+### What It Enforces
 
-### Workflow Phases
+- ✅ **Design-first development** - No code without architecture docs
+- ✅ **Test-driven development** - Tests written BEFORE implementation
+- ✅ **Full traceability** - Requirements → Design → Code → Tests all linked
+- ✅ **Governance checkpoints** - Risk assessment at each phase
+- ✅ **Session continuity** - Ledgers and handoffs prevent agent degradation
 
-**With PRD (recommended):**
+### Components
+
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@qa**, @overseer |
+| **Skills** | 9 | faang-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database |
+| **Commands** | 13 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/tdd**, /pre-review, /save-state, /handoff, /resume, /status, /test |
+| **Hooks** | 5 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop |
+
+### Workflow
+
 ```
 /prd ──→ /review-design ──→ [/ux-spec] ──→ /tdd ──→ /pre-review
   │                             │
-  └─ creates tasks too          └─ optional (UI features only)
+  └─ creates tasks              └─ optional (UI features only)
 ```
 
-**Without PRD:**
-```
-/design ──→ /review-design ──→ /plan-sprint ──→ [/ux-spec] ──→ /tdd ──→ /pre-review
-                                    │               │
-                                    └─ required     └─ optional
+### Key Agent: @qa
+
+The `@qa` agent writes pytest tests BEFORE any implementation:
+
+```python
+# tests/auth/test_login.py
+class TestLogin:
+    def test_valid_login_succeeds(self):
+        """REQ-001: Test successful operation."""
+        pytest.skip("Awaiting implementation")
+
+    def test_invalid_password_fails(self):
+        """REQ-001: Test validation."""
+        pytest.skip("Awaiting implementation")
 ```
 
-**Backend-only (no UI):**
+### Directory Structure
+
 ```
-/prd ──→ /review-design ──→ /tdd ──→ /pre-review
+plugin-tdd/
+├── .claude-plugin/
+│   ├── plugin.json
+│   └── settings.json
+├── agents/
+│   ├── orchestrator.md
+│   ├── pm.md
+│   ├── planner.md
+│   ├── architect.md
+│   ├── ux.md
+│   ├── frontend.md
+│   ├── backend.md
+│   ├── qa.md              # TDD test writer
+│   └── overseer.md
+├── commands/
+│   └── tdd.md             # TDD implementation command
+├── skills/
+│   └── faang-workflow/    # TDD workflow skill
+├── hooks/
+├── scripts/
+├── tools/
+│   └── run_tests_summarized.py
+└── schemas/
 ```
 
 ---
 
-## Commands
+## Plugin: SDD (plugin-sdd)
 
-### Continuity Commands
+### Philosophy
+
+Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
+
+```
+1. @spec-writer writes specs → defines expected behavior
+2. @spec-writer creates evals → validation criteria
+3. @backend/@frontend implements → code written to spec
+4. Evals run → validate implementation matches spec
+```
+
+### Testing Philosophy
+
+**Specs and evals encode requirements, not code structure.** They are contracts between human intent and machine implementation—they verify *what* the system does, not *how* it does it.
+
+**The Litmus Test:** *"Could I completely rewrite the implementation using a different algorithm, and would these evals still pass?"* If yes, you've specified behavior. If no, you've coupled to implementation—rewrite the spec.
+
+### What It Enforces
+
+- ✅ **Design-first development** - No code without architecture docs
+- ✅ **Spec-driven development** - Specs written BEFORE implementation
+- ✅ **Behavioral validation** - Evals test behavior, not implementation
+- ✅ **Full traceability** - Requirements → Design → Specs → Evals → Code
+- ✅ **Governance checkpoints** - Risk assessment + sprint evaluation
+- ✅ **Session continuity** - Ledgers and handoffs prevent agent degradation
+
+### Components
+
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@spec-writer**, @overseer |
+| **Skills** | 10 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database, **onboarding** |
+| **Commands** | 16 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/spec**, **/implement**, **/eval**, **/debug**, /pre-review, /save-state, /handoff, /resume, /status, /check |
+| **Hooks** | 5 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop |
+| **Schemas** | 4 | traceability_matrix, planner_task, **spec_schema**, **eval_result_schema** |
+
+### Workflow
+
+```
+/prd ──→ /review-design ──→ [/ux-spec] ──→ /spec ──→ /implement ──→ /eval ──→ /pre-review
+  │                             │            │                        │
+  └─ creates tasks              │            └─ creates specs         └─ if fails: /debug
+                                └─ optional (UI features only)
+```
+
+### Key Agent: @spec-writer
+
+The `@spec-writer` agent writes behavioral specs and evals BEFORE any implementation:
+
+**Spec File (specs/auth/SPEC-001.md):**
+```markdown
+# SPEC-001: User Login
+
+## Behavioral Specification
+
+### Expected Behavior
+1. WHEN valid credentials provided THEN session created
+2. WHEN invalid password THEN generic error returned (no detail leak)
+3. WHEN 5 failed attempts THEN account temporarily locked
+
+## Eval Criteria
+- [ ] Happy path produces expected output
+- [ ] Error cases return appropriate errors
+- [ ] Edge cases handled correctly
+```
+
+**Eval File (evals/auth/eval_spec_001.py):**
+```python
+@dataclass
+class EvalResult:
+    passed: bool
+    spec_id: str
+    description: str
+    expected: Any
+    actual: Any = None
+    error: str = None
+
+class SpecEval:
+    spec_id = "SPEC-001"
+
+    def eval_valid_login_succeeds(self) -> EvalResult:
+        """Eval: Valid credentials create session."""
+        # Given/When/Then behavioral test
+        ...
+```
+
+### Key Commands
 
 | Command | Description |
 |---------|-------------|
-| `/save-state` | Update continuity ledger before `/clear` |
-| `/handoff` | Create detailed session handoff for later |
-| `/resume` | Load and review latest handoff |
-| `/status` | Show workflow progress and health |
+| `/spec <REQ-ID>` | Create behavioral specification for requirement |
+| `/implement <module>` | Implement module to match specs |
+| `/eval <module>` | Run evals to validate implementation |
+| `/debug <module>` | Structured debugging for failing evals |
+| `/check` | Plugin health check |
 
-### Workflow Commands
+### Directory Structure
 
-| Command | Description |
-|---------|-------------|
-| `/init` | Initialize project directories, venv, and config |
-| `/prd <file>` | Process PRD into EARS requirements + design + tasks |
-| `/design <feature>` | Create design document (when no PRD exists) |
-| `/review-design` | Validate design completeness and risk |
-| `/plan-sprint` | Generate tasks (use after `/design`, not `/prd`) |
-| `/ux-spec <REQ-ID>` | Create UX specification *(optional, for UI features)* |
-| `/tdd <module>` | Implement with strict TDD (tests FIRST) |
-| `/pre-review` | Pre-submission validation |
-| `/test` | Verify plugin is working correctly |
+```
+plugin-sdd/
+├── .claude-plugin/
+│   ├── plugin.json
+│   └── settings.json
+├── agents/                 # 9 specialized agents
+│   ├── orchestrator.md
+│   ├── pm.md
+│   ├── planner.md
+│   ├── architect.md
+│   ├── ux.md
+│   ├── frontend.md
+│   ├── backend.md
+│   ├── spec-writer.md      # SDD spec/eval writer
+│   └── overseer.md         # Governance + sprint evaluation
+├── commands/               # Explicit workflow commands
+│   ├── implement.md        # Build to match specs
+│   ├── spec.md             # Create behavioral spec
+│   ├── eval.md             # Run evals
+│   ├── debug.md            # Structured debugging
+│   └── check.md            # Plugin health check
+├── skills/                 # Auto-triggering capabilities
+│   ├── sdd-workflow/       # Workflow coordination
+│   ├── debugging/          # Debug patterns (auto-triggers)
+│   └── onboarding/         # Brownfield repo adoption
+├── guides/                 # Reference documentation
+│   └── python-environment.md
+├── templates/              # Reusable code templates
+│   ├── eval-template.py
+│   └── eval-property-template.py
+├── hooks/
+├── scripts/
+├── tools/
+│   ├── run_evals.py        # Run eval scripts
+│   ├── traceability_tools.py  # Matrix management
+│   ├── planner_tools.py    # Validate plan JSON
+│   ├── eval_coverage.py    # Verify specs have evals
+│   └── spec_linter.py      # Validate spec format
+└── schemas/
+```
+
+### Tools
+
+| Tool | Command | Purpose |
+|------|---------|---------|
+| `run_evals.py` | `uv run python tools/run_evals.py --all` | Execute all eval scripts |
+| `traceability_tools.py` | `uv run python tools/traceability_tools.py check-gaps ...` | Manage traceability matrix |
+| `planner_tools.py` | `uv run python tools/planner_tools.py validate ...` | Validate plan JSON files |
+| `eval_coverage.py` | `uv run python tools/eval_coverage.py` | Verify every spec has evals |
+| `spec_linter.py` | `uv run python tools/spec_linter.py` | Validate spec format |
+
+### Brownfield Onboarding
+
+For existing codebases, the `onboarding` skill auto-triggers when discussing:
+- "I have an existing codebase..."
+- "How do I add SDD to my project?"
+- "Retrofitting specs to legacy code"
+
+Key principle: **Don't boil the ocean.** Adopt SDD incrementally—full SDD for new features, gradual retrofit for critical existing code.
+
+### Sprint Evaluation (@overseer)
+
+The `@overseer` agent in SDD evaluates completed sprints against PRD intent:
+
+```markdown
+## Sprint Evaluation: Sprint 1
+
+### PRD Alignment Check
+| PRD Goal | Delivered | Status |
+|----------|-----------|--------|
+| User login | Login flow implemented | ✓ aligned |
+| Password reset | Not started | ✗ missed |
+
+### Eval Summary
+| Status | Count |
+|--------|-------|
+| All Passing | 5 |
+| Partial | 1 |
+| Failing | 0 |
+```
+
+### Skill & Command Triggers
+
+The SDD plugin uses two trigger mechanisms:
+
+| Type | Mechanism | Example |
+|------|-----------|---------|
+| **Commands** | Explicit invocation | `/implement auth` - user requests implementation |
+| **Skills** | Auto-trigger on context | `debugging` skill activates when discussing bugs |
+
+**sdd-workflow skill auto-triggers for:**
+- PRD processing and design document creation
+- Spec-to-implementation cycles
+- Multi-agent handoffs between phases
+- Session continuity (`/save-state`, `/handoff`, `/resume`)
+
+**debugging skill auto-triggers for:**
+- Discussion of bugs or unexpected behavior
+- Mentioning errors or exceptions
+- Questions about why code doesn't match spec
+
+**Use `/debug <module>` for explicit, structured debugging of a specific failing eval.**
 
 ---
 
-## Agents
+## Plugin Architecture
 
-Nine specialized agents that Claude can delegate work to:
+### Component Interaction Diagram
 
-| Agent | Role | When Used |
-|-------|------|-----------|
-| `@orchestrator` | Routes work, manages continuity, prevents loops | Multi-agent workflows |
-| `@pm` | EARS requirements, priorities, acceptance criteria | Project start |
-| `@planner` | Task breakdown, dependencies, sprint planning | After design review |
-| `@architect` | Design docs, API contracts, architecture | Before implementation |
-| `@ux` | User flows, screens, states, interactions | Before frontend work |
-| `@frontend` | UI implementation (AFTER tests exist) | UI development |
-| `@backend` | APIs and business logic (AFTER tests exist) | Server-side work |
-| `@qa` | **Writes tests FIRST** - TDD enforcer | Before any implementation |
-| `@overseer` | Governance, risk assessment, drift detection | Reviews, pre-release |
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              USER INTERACTION                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐             │
+│   │  /prd    │───▶│ /review- │───▶│  /spec   │───▶│/implement│──┐          │
+│   │          │    │  design  │    │          │    │          │  │          │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘  │          │
+│                                                                  ▼          │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐             │
+│   │  /check  │    │  /debug  │◀───│  /eval   │◀───│   pass?  │             │
+│   │ (health) │    │ (if fail)│    │          │    │          │             │
+│   └──────────┘    └──────────┘    └──────────┘    └────┬─────┘             │
+│                         │                              │ yes               │
+│                         ▼                              ▼                   │
+│                   ┌──────────┐                  ┌──────────┐               │
+│                   │   fix    │─────────────────▶│/pre-review│              │
+│                   └──────────┘                  └──────────┘               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-### Agent Features
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              AGENT COORDINATION                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────┐                                                           │
+│   │@orchestrator│◀─────────────── Routes work, manages handoffs             │
+│   └──────┬──────┘                                                           │
+│          │                                                                  │
+│   ┌──────┴──────────────────────────────────────────────────────┐          │
+│   │                                                              │          │
+│   ▼              ▼              ▼              ▼                ▼          │
+│ ┌────┐        ┌────┐        ┌────┐        ┌────┐          ┌────────┐       │
+│ │@pm │        │@planner│    │@architect│  │@spec-writer│  │@overseer│      │
+│ └────┘        └────┘        └────┘        └────┘          └────────┘       │
+│   │              │              │              │                │          │
+│   │ requirements │ tasks        │ design       │ specs+evals    │ governance│
+│   ▼              ▼              ▼              ▼                ▼          │
+│ ┌────┐        ┌────┐        ┌────┐        ┌────────────┐                   │
+│ │@ux │        │@frontend│   │@backend│   │   evals/   │                    │
+│ └────┘        └────┘        └────┘        └────────────┘                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-All agents:
-- Are **continuity-aware** (check ledgers, warn about context)
-- Use `model: inherit` for consistent behavior
-- Include "MUST BE USED" triggers for auto-delegation
-- Report handoff-ready summaries to @orchestrator
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              SKILL AUTO-TRIGGERS                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  User message ──▶ Pattern matching ──▶ Skill activation                    │
+│                                                                             │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐         │
+│  │  sdd-workflow   │    │    debugging    │    │   code-review   │         │
+│  ├─────────────────┤    ├─────────────────┤    ├─────────────────┤         │
+│  │ PRD processing  │    │ Bug discussion  │    │ PR review       │         │
+│  │ Spec cycles     │    │ Error mentions  │    │ Code quality    │         │
+│  │ Agent handoffs  │    │ Troubleshooting │    │ Best practices  │         │
+│  │ /save-state     │    │                 │    │                 │         │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 
----
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              HOOK LIFECYCLE                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SessionStart ──▶ UserPromptSubmit ──▶ PostToolUse ──▶ SubagentStop        │
+│       │                  │                  │               │               │
+│       ▼                  ▼                  ▼               ▼               │
+│  Load ledger       Context check      Track edits      Create handoff      │
+│  Load handoff      Skill hints        Update matrix    Update ledger       │
+│  Verify env                                                                 │
+│                                                                             │
+│  PreCompact (before context compaction)                                     │
+│       │                                                                     │
+│       ▼                                                                     │
+│  Auto-save state, warn about degradation                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-## Skills
+### Data Flow
 
-Nine auto-invoked skills that Claude uses based on context:
-
-| Skill | Auto-Triggers When |
-|-------|-------------------|
-| `faang-workflow` | Production features, PRDs, TDD, sprint planning |
-| `code-review` | PR reviews, code quality checks, assessing changes |
-| `debugging` | Fixing bugs, investigating errors, test failures |
-| `git-workflow` | Committing, creating PRs, branch management |
-| `refactoring` | Restructuring code, reducing duplication |
-| `api-design` | Designing endpoints, API contracts |
-| `security-review` | Security audits, vulnerability checks |
-| `documentation` | Writing docs, READMEs, docstrings |
-| `database` | Schema changes, migrations, queries |
-
-### How Skills Work
-
-Claude automatically invokes skills based on your request:
-
-| You Say | Claude Uses |
-|---------|-------------|
-| "Review this PR" | `code-review` |
-| "Fix this failing test" | `debugging` |
-| "Commit these changes" | `git-workflow` |
-| "Clean up this code" | `refactoring` |
-| "Design the user API" | `api-design` |
-| "Check for security issues" | `security-review` |
-| "Document this function" | `documentation` |
-| "Add a new database column" | `database` |
+```
+requirements/     docs/design/      specs/           src/              evals/
+    PRD    ──────▶  Design   ──────▶  SPEC-*  ──────▶  Code  ◀────────  eval_*
+     │                │                 │               │                 │
+     └────────────────┴─────────────────┴───────────────┴─────────────────┘
+                                        │
+                                        ▼
+                              traceability_matrix.json
+```
 
 ---
 
@@ -387,7 +580,7 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 
 ### Key Files
 
-> **IMPORTANT:** All `thoughts/` paths must be at the **project root**, never in subdirectories like `frontend/thoughts/` or `src/thoughts/`.
+> **IMPORTANT:** All `thoughts/` paths must be at the **project root**, never in subdirectories.
 
 | File | Purpose |
 |------|---------|
@@ -400,7 +593,7 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 
 ## Python Environment
 
-> **CRITICAL:** This workflow enforces `uv` for all Python execution.
+> **CRITICAL:** Both plugins enforce `uv` for all Python execution.
 
 ### The Rule
 
@@ -409,8 +602,8 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 uv run pytest tests/ -v
 uv run python script.py
 
-# ❌ WRONG - Never run directly  
-pytest tests/           
+# ❌ WRONG - Never run directly
+pytest tests/
 python script.py
 ```
 
@@ -426,104 +619,11 @@ uv sync
 # Add packages
 uv add pytest requests
 
-# Run tests
+# Run tests (TDD)
 uv run pytest tests/ -v
 
-# Run Python scripts
-uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
-```
-
----
-
-## Tools
-
-Python utilities for validation and reporting:
-
-```bash
-# Traceability management
-uv run python tools/traceability_tools.py init traceability_matrix.json
-uv run python tools/traceability_tools.py validate traceability_matrix.json
-uv run python tools/traceability_tools.py check-gaps traceability_matrix.json
-uv run python tools/traceability_tools.py summary traceability_matrix.json --markdown
-
-# Test runner with summary
-uv run python tools/run_tests_summarized.py --cmd "uv run pytest tests/" --tail 40
-
-# Plan validation
-uv run python tools/planner_tools.py validate thoughts/shared/plans/plan-[feature].json
-```
-
----
-
-## Directory Structure
-
-```
-claude_code_workflow/
-├── plugin/
-│   ├── .claude-plugin/
-│   │   ├── plugin.json          # Plugin manifest
-│   │   └── settings.json        # Status line config
-│   │
-│   ├── agents/                   # 9 specialized agents
-│   │   ├── orchestrator.md      # Routes work, prevents loops
-│   │   ├── pm.md                # Requirements owner
-│   │   ├── planner.md           # Task breakdown
-│   │   ├── architect.md         # Design & contracts
-│   │   ├── ux.md                # User flows
-│   │   ├── frontend.md          # UI implementation
-│   │   ├── backend.md           # API implementation
-│   │   ├── qa.md                # TDD test writer
-│   │   └── overseer.md          # Governance & risk
-│   │
-│   ├── commands/                 # 13 slash commands
-│   │   ├── init.md              # Project initialization
-│   │   ├── save-state.md        # Update ledger
-│   │   ├── handoff.md           # Session transfer
-│   │   ├── resume.md            # Load handoff
-│   │   ├── status.md            # Workflow health
-│   │   ├── prd.md               # Process PRD
-│   │   ├── design.md            # Create design doc
-│   │   ├── review-design.md     # Validate design
-│   │   ├── plan-sprint.md       # Task breakdown
-│   │   ├── ux-spec.md           # UX specification (optional)
-│   │   ├── tdd.md               # TDD implementation
-│   │   ├── pre-review.md        # Pre-submission check
-│   │   └── test.md              # Plugin health check
-│   │
-│   ├── skills/                   # 9 auto-invoked skills
-│   │   ├── faang-workflow/      # Main orchestration
-│   │   ├── code-review/         # PR & quality review
-│   │   ├── debugging/           # Bug investigation
-│   │   ├── git-workflow/        # Commits & PRs
-│   │   ├── refactoring/         # Code restructuring
-│   │   ├── api-design/          # REST/GraphQL patterns
-│   │   ├── security-review/     # Vulnerability checks
-│   │   ├── documentation/       # Docs & docstrings
-│   │   └── database/            # Schema & migrations
-│   │
-│   ├── hooks/                    # 5 lifecycle hooks
-│   │   ├── hooks.json           # Hook configuration
-│   │   ├── session-start.sh     # Load continuity state
-│   │   ├── pre-compact.sh       # Auto-handoff
-│   │   ├── user-prompt-submit.sh # Context warnings
-│   │   ├── post-tool-use.sh     # Track file changes
-│   │   └── subagent-stop.sh     # Task handoffs
-│   │
-│   ├── scripts/
-│   │   ├── init-project.sh      # Project setup
-│   │   └── status.sh            # Status line
-│   │
-│   ├── tools/                    # Python utilities
-│   │   ├── traceability_tools.py # Requirement tracking
-│   │   ├── planner_tools.py      # Plan validation
-│   │   └── run_tests_summarized.py # Test runner
-│   │
-│   └── schemas/
-│       ├── planner_task_schema.json
-│       └── traceability_matrix_schema.json
-│
-├── README.md
-└── LICENSE
+# Run evals (SDD)
+uv run python tools/run_evals.py --all
 ```
 
 ---
@@ -532,7 +632,7 @@ claude_code_workflow/
 
 ### Adding Commands
 
-Create `plugin/commands/my-command.md`:
+Create `plugin-{tdd,sdd}/commands/my-command.md`:
 
 ```markdown
 ---
@@ -548,7 +648,7 @@ Use $ARGUMENTS to capture user input.
 
 ### Adding Agents
 
-Create `plugin/agents/my-agent.md`:
+Create `plugin-{tdd,sdd}/agents/my-agent.md`:
 
 ```markdown
 ---
@@ -579,7 +679,7 @@ Report to @orchestrator with handoff-ready summary.
 
 ### Adding Skills
 
-Create `plugin/skills/my-skill/SKILL.md`:
+Create `plugin-{tdd,sdd}/skills/my-skill/SKILL.md`:
 
 ```markdown
 ---
@@ -606,31 +706,31 @@ Step-by-step instructions...
 ### Commands not appearing
 
 ```bash
-# If using permanent install, check plugin exists
+# Check plugin exists
 ls ~/.claude/plugins/claude-code-workflow
 
-# If using --plugin-dir, verify path is correct
-claude --plugin-dir /path/to/plugin
+# Or verify --plugin-dir path
+claude --plugin-dir /path/to/plugin-sdd
 
 # Type /help and look for claude-code-workflow namespace
 ```
 
 ### Hooks not running
 
-   ```bash
+```bash
 # Make executable
-chmod +x plugin/hooks/*.sh
+chmod +x plugin-sdd/hooks/*.sh  # or plugin-tdd
 
 # Verify jq
 jq --version
 
 # Test manually
-echo '{"source":"startup"}' | plugin/hooks/session-start.sh
+echo '{"source":"startup"}' | plugin-sdd/hooks/session-start.sh
 ```
 
 ### Python environment issues
 
-   ```bash
+```bash
 # Verify uv
 uv --version
 
@@ -641,17 +741,17 @@ uv sync
 
 # Test
 uv run pytest --version
-   ```
+```
 
 ### Ledger not loading after /clear
 
-   ```bash
+```bash
 # Verify ledger exists
-   ls thoughts/ledgers/CONTINUITY_*.md
+ls thoughts/ledgers/CONTINUITY_*.md
 
 # Test hook manually
-echo '{"source":"clear"}' | plugin/hooks/session-start.sh
-   ```
+echo '{"source":"clear"}' | plugin-sdd/hooks/session-start.sh
+```
 
 ---
 
@@ -660,7 +760,7 @@ echo '{"source":"clear"}' | plugin/hooks/session-start.sh
 1. Fork this repository
 2. Create a feature branch
 3. Make your changes
-4. Test with `claude --plugin-dir /path/to/your/fork/plugin` (or symlink to `~/.claude/plugins/`)
+4. Test with `claude --plugin-dir /path/to/your/fork/plugin-sdd` (or plugin-tdd)
 5. Submit a pull request
 
 ---

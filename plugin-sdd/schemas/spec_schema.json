@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/behavioral-spec.json",
+  "title": "BehavioralSpec",
+  "description": "Schema for behavioral specification files",
+  "type": "object",
+  "required": [
+    "spec_id",
+    "req_ids",
+    "behaviors"
+  ],
+  "properties": {
+    "spec_id": {
+      "type": "string",
+      "pattern": "^SPEC-[0-9]+$",
+      "description": "Specification ID (e.g., SPEC-001)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title"
+    },
+    "req_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^REQ-[0-9]+$"
+      },
+      "minItems": 1,
+      "description": "Linked requirement IDs"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "deprecated"
+      ],
+      "default": "draft"
+    },
+    "author": {
+      "type": "string",
+      "default": "spec-writer"
+    },
+    "behaviors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "given",
+          "when",
+          "then"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Behavior ID (e.g., B-001)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "happy_path",
+              "error_case",
+              "edge_case",
+              "invariant"
+            ],
+            "default": "happy_path"
+          },
+          "given": {
+            "type": "string",
+            "description": "Precondition"
+          },
+          "when": {
+            "type": "string",
+            "description": "Action or trigger"
+          },
+          "then": {
+            "type": "string",
+            "description": "Expected outcome"
+          },
+          "and": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional outcomes"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Properties that must always hold"
+    },
+    "input": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "examples": {
+          "type": "array"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "object"
+        },
+        "error": {
+          "type": "object"
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

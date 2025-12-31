@@ -1,0 +1,22 @@
+{
+  "name": "claude-code-workflow-sdd",
+  "description": "Spec-Driven Development workflow with meaningful evals - prevents agent degradation through ledgers and handoffs",
+  "version": "1.0.0",
+  "author": {
+    "name": "Claude Code Workflow Team"
+  },
+  "repository": "https://github.com/blevene/claude_code_workflow",
+  "homepage": "https://github.com/blevene/claude_code_workflow#readme",
+  "license": "MIT",
+  "keywords": [
+    "faang",
+    "sdd",
+    "spec-driven",
+    "evals",
+    "workflow",
+    "continuity",
+    "multi-agent",
+    "specifications"
+  ],
+  "hooks": "./hooks/hooks.json"
+}

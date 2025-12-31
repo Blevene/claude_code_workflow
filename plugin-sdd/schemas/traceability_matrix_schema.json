@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/traceability-matrix-sdd.json",
+  "title": "TraceabilityMatrixSDD",
+  "type": "object",
+  "required": [
+    "requirements"
+  ],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Optional metadata about the matrix",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "project": {
+          "type": "string"
+        },
+        "created": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "ears"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^REQ-[0-9]+$",
+            "description": "Requirement ID (e.g., REQ-001)"
+          },
+          "story_id": {
+            "type": "string",
+            "description": "Optional user story ID (e.g., US-1)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "functional",
+              "non-functional",
+              "constraint"
+            ],
+            "default": "functional"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "in_progress",
+              "implemented",
+              "evaluated",
+              "verified",
+              "deprecated"
+            ],
+            "default": "proposed"
+          },
+          "ears": {
+            "type": "string",
+            "description": "EARS-format requirement statement"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "description": "Risk assessment from @overseer"
+          },
+          "governance_status": {
+            "type": "string",
+            "enum": [
+              "not_reviewed",
+              "approved",
+              "changes_requested"
+            ],
+            "default": "not_reviewed",
+            "description": "Governance review status from @overseer"
+          },
+          "eval_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "partial",
+              "all_passing",
+              "failing"
+            ],
+            "default": "pending",
+            "description": "Eval execution status"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Task IDs implementing this requirement (e.g., T-001)"
+          },
+          "specs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Behavioral spec file paths (e.g., specs/auth/SPEC-001.md)"
+          },
+          "evals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Behavioral eval scripts - PRIMARY validation. Test behavior via Given/When/Then (e.g., evals/auth/eval_spec_001.py)"
+          },
+          "ux_artifacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "UX spec file paths (e.g., .design/REQ-001-ux.json)"
+          },
+          "arch_artifacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Architecture doc paths (e.g., docs/design/auth.md)"
+          },
+          "code": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Implementation file paths"
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Unit tests - OPTIONAL supplement for complex internals or legacy code (e.g., tests/auth/test_crypto.py)"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

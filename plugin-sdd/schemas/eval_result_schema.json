@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/eval-result.json",
+  "title": "EvalResult",
+  "description": "Schema for eval execution results",
+  "type": "object",
+  "required": [
+    "spec_id",
+    "results",
+    "summary"
+  ],
+  "properties": {
+    "spec_id": {
+      "type": "string",
+      "pattern": "^SPEC-[0-9]+$",
+      "description": "Specification ID being evaluated"
+    },
+    "eval_file": {
+      "type": "string",
+      "description": "Path to eval file"
+    },
+    "executed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "behavior_id",
+          "passed",
+          "description"
+        ],
+        "properties": {
+          "behavior_id": {
+            "type": "string",
+            "description": "ID of behavior being tested"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "expected": {
+            "description": "Expected value or outcome"
+          },
+          "actual": {
+            "description": "Actual value or outcome"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if failed"
+          },
+          "duration_ms": {
+            "type": "number",
+            "description": "Execution time in milliseconds"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "total",
+        "passed",
+        "failed"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "all_passing",
+            "partial",
+            "failing",
+            "error"
+          ]
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

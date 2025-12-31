@@ -5,14 +5,14 @@ import argparse, json
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Schema is in the same directory as this tool (plugin/tools/../schemas/)
+# Schema is in the same directory as this tool (plugin-sdd/tools/../schemas/)
 TOOL_DIR = Path(__file__).parent
 SCHEMA_PATH = TOOL_DIR.parent / "schemas" / "traceability_matrix_schema.json"
 
 DEFAULT_MATRIX = {
     "meta": {
         "version": 1,
-        "description": "Traceability matrix linking EARS requirements to tasks, design, code, tests, and Jules tasks."
+        "description": "Traceability matrix linking EARS requirements to specs, evals, tasks, design, and code."
     },
     "requirements": []
 }
@@ -65,23 +65,28 @@ def validate_with_schema(matrix: Any) -> List[str]:
 def analyze_gaps(matrix: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
     reqs: List[Dict[str, Any]] = matrix.get("requirements", [])
     missing_code: List[Dict[str, Any]] = []
-    missing_tests: List[Dict[str, Any]] = []
+    missing_specs: List[Dict[str, Any]] = []
+    missing_evals: List[Dict[str, Any]] = []
     missing_tasks: List[Dict[str, Any]] = []
     for r in reqs:
         rid = r.get("id", "<unknown>")
         ears = r.get("ears", "")
         code = r.get("code") or []
-        tests = r.get("tests") or []
+        specs = r.get("specs") or []
+        evals = r.get("evals") or []
         tasks = r.get("tasks") or []
         if not code:
             missing_code.append({"id": rid, "ears": ears})
-        if not tests:
-            missing_tests.append({"id": rid, "ears": ears})
+        if not specs:
+            missing_specs.append({"id": rid, "ears": ears})
+        if not evals:
+            missing_evals.append({"id": rid, "ears": ears})
         if not tasks:
             missing_tasks.append({"id": rid, "ears": ears})
     return {
         "missing_code": missing_code,
-        "missing_tests": missing_tests,
+        "missing_specs": missing_specs,
+        "missing_evals": missing_evals,
         "missing_tasks": missing_tasks,
     }
 
@@ -132,9 +137,11 @@ def cmd_check_gaps(args: argparse.Namespace) -> int:
         if len(items) > args.max_show:
             print(f"    ... ({len(items) - args.max_show} more)")
 
-    show("Requirements missing code", gaps["missing_code"])
+    show("Requirements missing specs", gaps["missing_specs"])
     print()
-    show("Requirements missing tests", gaps["missing_tests"])
+    show("Requirements missing evals", gaps["missing_evals"])
+    print()
+    show("Requirements missing code", gaps["missing_code"])
     print()
     show("Requirements missing tasks", gaps["missing_tasks"])
 
@@ -151,14 +158,26 @@ def cmd_summary(args: argparse.Namespace) -> int:
     total = len(reqs)
     by_status = {}
     by_priority = {}
+    with_specs = 0
+    with_evals = 0
+    with_code = 0
     for r in reqs:
         st = r.get("status", "unknown")
         pr = r.get("priority", "unspecified")
         by_status[st] = by_status.get(st, 0) + 1
         by_priority[pr] = by_priority.get(pr, 0) + 1
+        if r.get("specs"):
+            with_specs += 1
+        if r.get("evals"):
+            with_evals += 1
+        if r.get("code"):
+            with_code += 1
     if args.markdown:
         print(f"# Traceability Summary for {path.name}\n")
         print(f"- Total requirements: **{total}**")
+        print(f"- With specs: **{with_specs}**")
+        print(f"- With evals: **{with_evals}**")
+        print(f"- With code: **{with_code}**")
         print(f"- By status:")
         for st, count in sorted(by_status.items()):
             print(f"  - `{st}`: {count}")
@@ -168,6 +187,9 @@ def cmd_summary(args: argparse.Namespace) -> int:
     else:
         print(f"Traceability Summary for {path.name}")
         print(f"  Total requirements: {total}")
+        print(f"  With specs: {with_specs}")
+        print(f"  With evals: {with_evals}")
+        print(f"  With code: {with_code}")
         print("  By status:")
         for st, count in sorted(by_status.items()):
             print(f"    - {st}: {count}")
@@ -186,7 +208,7 @@ def main():
     p_val = sub.add_parser("validate", help="Validate matrix structure and schema.")
     p_val.add_argument("matrix_file")
     p_val.set_defaults(func=cmd_validate)
-    p_gap = sub.add_parser("check-gaps", help="Show requirements missing tasks/code/tests.")
+    p_gap = sub.add_parser("check-gaps", help="Show requirements missing specs/evals/code/tasks.")
     p_gap.add_argument("matrix_file")
     p_gap.add_argument("--max-show", type=int, default=10)
     p_gap.set_defaults(func=cmd_check_gaps)

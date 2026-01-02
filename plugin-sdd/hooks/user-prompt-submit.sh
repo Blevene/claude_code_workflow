@@ -92,11 +92,12 @@ fi
 # Output response
 if [ -n "$HINTS" ]; then
     jq -n --arg hints "$HINTS" '{
+        "event": "UserPromptSubmit",
         "continue": true,
         "hookSpecificOutput": {
             "additionalContext": $hints
         }
     }'
 else
-    jq -n '{"continue": true}'
+    jq -n '{"event": "UserPromptSubmit", "continue": true}'
 fi

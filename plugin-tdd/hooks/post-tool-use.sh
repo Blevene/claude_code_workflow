@@ -49,5 +49,6 @@ fi
 
 # Always continue - this is an observation hook
 jq -n '{
+    "event": "PostToolUse",
     "continue": true
 }'

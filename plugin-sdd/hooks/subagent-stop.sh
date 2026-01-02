@@ -65,6 +65,7 @@ case "$AGENT_NAME" in
     pm|planner|architect|ux|frontend|backend|spec-writer|overseer|orchestrator)
         HANDOFF_FILE=$(create_task_handoff)
         jq -n --arg agent "$AGENT_NAME" --arg handoff "$HANDOFF_FILE" '{
+            "event": "SubagentStop",
             "continue": true,
             "hookSpecificOutput": {
                 "additionalContext": ("✅ @" + $agent + " completed. Task handoff: " + $handoff)
@@ -73,6 +74,6 @@ case "$AGENT_NAME" in
         ;;
     *)
         # Unknown agent, just continue
-        jq -n '{"continue": true}'
+        jq -n '{"event": "SubagentStop", "continue": true}'
         ;;
 esac

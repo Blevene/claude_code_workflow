@@ -160,6 +160,7 @@ fi
 
 # Output JSON response
 jq -n --arg ctx "$CONTEXT" '{
+    "event": "SessionStart",
     "continue": true,
     "hookSpecificOutput": {
         "additionalContext": $ctx

@@ -64,16 +64,12 @@ EOF
 case "$AGENT_NAME" in
     pm|planner|architect|ux|frontend|backend|spec-writer|overseer|orchestrator)
         HANDOFF_FILE=$(create_task_handoff)
-        jq -n --arg agent "$AGENT_NAME" --arg handoff "$HANDOFF_FILE" '{
-            "event": "SubagentStop",
-            "continue": true,
-            "hookSpecificOutput": {
-                "additionalContext": ("✅ @" + $agent + " completed. Task handoff: " + $handoff)
-            }
-        }'
+        # Output message for verbose mode, exit 0 to allow stop
+        echo "✅ @$AGENT_NAME completed. Task handoff: $HANDOFF_FILE"
+        exit 0
         ;;
     *)
-        # Unknown agent, just continue
-        jq -n '{"event": "SubagentStop", "continue": true}'
+        # Unknown agent, just continue - exit 0 to allow stop
+        exit 0
         ;;
 esac

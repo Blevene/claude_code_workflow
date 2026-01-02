@@ -48,7 +48,5 @@ if echo "$FILE_PATH" | grep -qE 'thoughts/shared/handoffs/.*\.md$'; then
 fi
 
 # Always continue - this is an observation hook
-jq -n '{
-    "event": "PostToolUse",
-    "continue": true
-}'
+# Exit code 0 with no output = success, continue normally
+exit 0

@@ -129,9 +129,28 @@ To resume later: /resume
 The SessionStart hook will load this automatically after /clear.
 ```
 
-## Also Update Ledger
+## Also Update Ledger (AUTOMATIC)
 
-When creating a handoff, also update the continuity ledger with current state.
-Run /save-state logic as part of handoff creation.
+When creating a handoff, **ALWAYS** run the ledger update script first:
+
+```bash
+# This happens automatically via the hook, but can also be triggered manually:
+# The update-ledger.sh script is called with trigger="handoff"
+```
+
+The ledger update is now automatic when:
+- Any TDD agent completes (subagent-stop hook)
+- Context compaction occurs (pre-compact hook)
+- `/handoff` is executed (you must update ledger as first step)
+
+**REQUIRED FIRST STEP:** Before writing the handoff file, ensure the continuity ledger is updated:
+
+1. Check if ledger exists at `thoughts/ledgers/CONTINUITY_CLAUDE-*.md`
+2. If not, create it with current project state
+3. Update the "Completed" section with session accomplishments
+4. Update "Current Phase" based on workflow progress
+5. Update "Traceability Status" with artifact counts
+
+Then proceed with creating the detailed handoff document.
 
 $ARGUMENTS

@@ -48,8 +48,6 @@ Create `thoughts/shared/plans/plan-[feature].json` with TDD task pairs:
 - Test task (owner: qa) BEFORE implementation task
 - Implementation task depends on test task
 
-Also create a copy at `planner_output.json` in root for quick access.
-
 ### 5. Output Summary
 
 Report:

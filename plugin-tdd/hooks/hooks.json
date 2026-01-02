@@ -38,7 +38,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|str_replace_editor|Bash|bash",
+        "matcher": "Edit|Write|str_replace_editor|Bash|bash|Read|read_file|view",
         "hooks": [
           {
             "type": "command",

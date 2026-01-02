@@ -13,6 +13,7 @@ TRANSCRIPT=$(echo "$INPUT" | jq -r '.transcript // ""')
 # CLAUDE_PROJECT_DIR = user's project directory (for user files like ledgers)
 # CLAUDE_PLUGIN_ROOT = plugin installation directory (for plugin scripts)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname "$0")/..}"
 HANDOFF_DIR="$PROJECT_DIR/thoughts/shared/handoffs/$SESSION_ID"
 LEDGER_DIR="$PROJECT_DIR/thoughts/ledgers"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -91,11 +92,19 @@ EOF
 
 HANDOFF_FILE=$(create_auto_handoff)
 
+# Auto-update continuity ledger alongside auto-handoff
+LEDGER_MSG=""
+LEDGER_SCRIPT="$PLUGIN_DIR/hooks/update-ledger.sh"
+if [ -x "$LEDGER_SCRIPT" ]; then
+    LEDGER_FILE=$("$LEDGER_SCRIPT" "pre-compact" "$SESSION_ID" "" "" "Auto-save before compaction")
+    LEDGER_MSG="📋 Ledger updated: $LEDGER_FILE"
+fi
+
 # Output JSON response - allow compaction to proceed
-jq -n --arg handoff "$HANDOFF_FILE" '{
+jq -n --arg handoff "$HANDOFF_FILE" --arg ledger "$LEDGER_MSG" '{
     "continue": true,
     "hookSpecificOutput": {
         "hookEventName": "PreCompact",
-        "additionalContext": ("📦 Auto-handoff created before compaction:\n" + $handoff + "\n\nContext will be refreshed. Ledger will reload on next prompt.")
+        "additionalContext": ("📦 Auto-handoff created before compaction:\n" + $handoff + "\n" + $ledger + "\n\nContext will be refreshed. Ledger will reload on next prompt.")
     }
 }'

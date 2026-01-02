@@ -559,6 +559,18 @@ requirements/     docs/design/      specs/           src/              evals/
 Work → Context fills → /save-state → /clear → Ledger auto-loads → Continue
 ```
 
+### Auto-Ledger Updates (v2.2.0+)
+
+The continuity ledger is now **automatically updated** alongside handoffs:
+
+| Trigger | What Happens |
+|---------|--------------|
+| **Subagent completes** | Task handoff created + ledger updated |
+| **Context compaction** | Auto-handoff created + ledger updated |
+| **`/handoff` command** | Session handoff created + ledger updated |
+
+This ensures the ledger stays current without requiring explicit `/save-state` calls. The ledger provides a compact, cumulative state for quick context reload, while handoffs provide detailed snapshots for deep recovery.
+
 ### Context Thresholds
 
 | Level | Action |
@@ -573,10 +585,30 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 | Hook | When | What It Does |
 |------|------|--------------|
 | **SessionStart** | `/clear`, startup | Loads ledger + handoff + Python env check |
-| **PreCompact** | Before compaction | Creates auto-handoff, blocks manual compact |
+| **PreCompact** | Before compaction | Creates auto-handoff + ledger update, blocks manual compact |
 | **UserPromptSubmit** | Every message | Context warnings, skill hints |
-| **PostToolUse** | After file edits | Tracks modified files |
-| **SubagentStop** | Agent completes | Creates task handoff |
+| **PostToolUse** | After file edits/reads | Tracks modified files + **loop detection** |
+| **SubagentStop** | Agent completes | Creates task handoff + ledger update |
+
+### Loop Detection (v2.2.0+)
+
+The PostToolUse hook now detects when agents are stuck in repetitive patterns:
+
+| Threshold | Action |
+|-----------|--------|
+| 3 ops on same file | ⚠️ Warning injected into context |
+| 5 ops on same file | 🚨 Operation blocked, agent must change approach |
+
+**Common loop causes and fixes:**
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| pytest collection error | All files named `test_spec_001.py` | Use unique names per module |
+| `ModuleNotFoundError` | Missing `__init__.py` | Add `__init__.py` to package dirs |
+| Import collision | Duplicate module names | Rename files to be unique |
+| Same error after fix | Wrong file being modified | Check actual error source |
+
+When agents detect they're stuck, they should escalate to `@orchestrator` with a structured report instead of retrying.
 
 ### Key Files
 

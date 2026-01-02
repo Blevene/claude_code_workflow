@@ -88,6 +88,49 @@ If you detect repeated back-and-forth:
 3. **Escalate** to @pm, @architect, or @overseer for decision
 4. **Document** the decision
 
+### Handling "Stuck" Escalations
+
+When an agent reports they're stuck (## Stuck: ...), take action:
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  NEVER send the agent back to retry the same approach.      ║
+║  They escalated because retrying didn't work.               ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+**Decision Tree:**
+
+1. **Environmental issue** (imports, paths, `__init__.py`, naming collision)?
+   → Fix the environment, not the code. Often requires:
+   - Adding `__init__.py` files
+   - Renaming files to be unique
+   - Fixing Python path configuration
+   
+2. **Wrong file being modified** (error is elsewhere)?
+   → Redirect agent to the ACTUAL source of the problem
+   
+3. **Architecture issue** (circular deps, wrong abstraction)?
+   → Route to @architect for design revision
+   
+4. **Unclear requirements** (test ambiguous)?
+   → Route to @pm for clarification
+   
+5. **External dependency** (API changed, service down)?
+   → Document blocker, move to different task
+
+**Response to Stuck Agent:**
+
+```
+📋 Stuck Resolution
+
+**Issue:** [from agent's report]
+**Root Cause:** [your analysis]
+**Resolution:** [what to do instead]
+
+Next action: [specific instruction that is NOT "try again"]
+```
+
 ## Python Environment (CRITICAL)
 
 When routing Python work to @qa, @backend, or @frontend:

@@ -271,6 +271,54 @@ Add to REQ-001 evals: ["evals/auth/eval_spec_001.py"]
 - Evals should be deterministic and repeatable
 - Evals should validate behavior, not implementation details
 
+## Loop Prevention (CRITICAL)
+
+### Recognizing You're Stuck
+
+You are STUCK if you've done any of these 3+ times:
+- Modified the same eval file to fix the same error
+- Run the same failing eval expecting different results
+- Re-read implementation trying to understand behavior
+
+### When Stuck - STOP and Diagnose
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  STOP. Do not make another edit to the same file.           ║
+║  The definition of insanity is repeating the same action    ║
+║  expecting different results.                                ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+**Ask yourself:**
+1. Is the eval testing behavior correctly, or is it coupled to implementation?
+2. Is the error in the eval, or in the implementation it's testing?
+3. Is this an environmental issue (imports, paths, missing `__init__.py`)?
+
+### Common Eval Issues
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| `ModuleNotFoundError` | Missing `__init__.py` | Add `__init__.py` to package dirs |
+| pytest collection error | Duplicate file names | Use unique names: `eval_login.py`, `eval_register.py` |
+| Import collision | All files named same | Rename to match module: `eval_{module_name}.py` |
+| Flaky tests | Non-deterministic behavior | Use fixtures, mock time/random |
+
+### Escalation Path
+
+If stuck after 2 attempts:
+1. **Document** what you tried and what failed
+2. **Summarize** the error and your hypothesis
+3. **Escalate** to @orchestrator with:
+   ```
+   ## Stuck: [brief description]
+   
+   **Error:** [exact error message]
+   **Tried:** [what you attempted]
+   **Hypothesis:** [what you think is wrong]
+   **Need:** [what would help - different approach, human input, etc.]
+   ```
+
 ## Continuity Awareness
 
 ### Before Starting Spec Writing

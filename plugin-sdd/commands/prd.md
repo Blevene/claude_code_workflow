@@ -60,8 +60,6 @@ Create `thoughts/shared/plans/plan-[feature].json` with SDD task triplets:
 - Implementation task depends on spec task
 - Eval task (owner: spec-writer) depends on implementation task
 
-Also create a copy at `planner_output.json` in root for quick access.
-
 ### 5. Output Summary
 
 Report:

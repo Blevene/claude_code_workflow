@@ -234,6 +234,54 @@ Add to REQ-001 tests: ["tests/auth/test_login.py"]
 - Critical paths: 95%
 - Every REQ must have at least one test
 
+## Loop Prevention (CRITICAL)
+
+### Recognizing You're Stuck
+
+You are STUCK if you've done any of these 3+ times:
+- Modified the same test file to fix the same error
+- Run the same failing test expecting different results
+- Re-read implementation trying to understand behavior
+
+### When Stuck - STOP and Diagnose
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  STOP. Do not make another edit to the same file.           ║
+║  The definition of insanity is repeating the same action    ║
+║  expecting different results.                                ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+**Ask yourself:**
+1. Is the test testing behavior correctly?
+2. Is the error in the test, or in the implementation it's testing?
+3. Is this an environmental issue (imports, paths, missing `__init__.py`)?
+
+### Common Test Issues
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| `ModuleNotFoundError` | Missing `__init__.py` | Add `__init__.py` to package dirs |
+| pytest collection error | Duplicate file names | Use unique names: `test_login.py`, `test_register.py` |
+| Import collision | All test files named same | Rename to match module |
+| Flaky tests | Non-deterministic behavior | Use fixtures, mock time/random |
+
+### Escalation Path
+
+If stuck after 2 attempts:
+1. **Document** what you tried and what failed
+2. **Summarize** the error and your hypothesis
+3. **Escalate** to @orchestrator with:
+   ```
+   ## Stuck: [brief description]
+   
+   **Error:** [exact error message]
+   **Tried:** [what you attempted]
+   **Hypothesis:** [what you think is wrong]
+   **Need:** [what would help - different approach, human input, etc.]
+   ```
+
 ## Continuity Awareness
 
 ### Before Starting Test Writing

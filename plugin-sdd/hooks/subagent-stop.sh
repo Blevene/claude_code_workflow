@@ -12,6 +12,7 @@ TASK_ID=$(echo "$INPUT" | jq -r '.task_id // ""')
 
 # Paths
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname "$0")/..}"
 HANDOFF_DIR="$PROJECT_DIR/thoughts/shared/handoffs/$SESSION_ID"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
@@ -64,8 +65,15 @@ EOF
 case "$AGENT_NAME" in
     pm|planner|architect|ux|frontend|backend|spec-writer|overseer|orchestrator)
         HANDOFF_FILE=$(create_task_handoff)
-        # Output message for verbose mode, exit 0 to allow stop
-        echo "✅ @$AGENT_NAME completed. Task handoff: $HANDOFF_FILE"
+        
+        # Auto-update continuity ledger alongside task handoff
+        LEDGER_SCRIPT="$PLUGIN_DIR/hooks/update-ledger.sh"
+        if [ -x "$LEDGER_SCRIPT" ]; then
+            LEDGER_FILE=$("$LEDGER_SCRIPT" "subagent-stop" "$SESSION_ID" "$AGENT_NAME" "" "Task: $TASK_ID")
+            echo "✅ @$AGENT_NAME completed. Handoff: $HANDOFF_FILE | Ledger: $LEDGER_FILE"
+        else
+            echo "✅ @$AGENT_NAME completed. Task handoff: $HANDOFF_FILE"
+        fi
         exit 0
         ;;
     *)

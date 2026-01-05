@@ -73,10 +73,10 @@ get_attempts_file() {
     fi
 }
 
-# Loop detection thresholds
-SAME_FILE_WARN=3
-SAME_FILE_BLOCK=5
-RECENT_WINDOW=20
+# Loop detection thresholds (tuned to reduce false positives)
+SAME_FILE_WARN=5      # Warn after 5 writes to same file (was 3)
+SAME_FILE_BLOCK=8     # Block after 8 writes (was 5)
+RECENT_WINDOW=15      # Shorter window = less accumulation (was 20)
 
 # ============================================
 # FILE PATH EXTRACTION
@@ -88,7 +88,13 @@ extract_file_path() {
             ;;
         Bash|bash)
             local cmd=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null)
-            echo "$cmd" | grep -oE '(>|>>)\s*[^\s;|&]+' | sed 's/[>]\+\s*//' | head -1 2>/dev/null || true
+            # Extract redirect target, but filter out /dev/null and other non-files
+            local target=$(echo "$cmd" | grep -oE '(>|>>)\s*[^\s;|&]+' | sed 's/[>]\+\s*//' | head -1 2>/dev/null || true)
+            # Skip /dev/null, /dev/stderr, /dev/stdout - these aren't real file writes
+            case "$target" in
+                /dev/null|/dev/stderr|/dev/stdout|"") ;;
+                *) echo "$target" ;;
+            esac
             ;;
         *)
             # Read operations and unknown tools - don't track for loop detection
@@ -104,9 +110,13 @@ is_write_operation() {
             return 0
             ;;
         Bash|bash)
-            # Check if bash command writes to a file
+            # Check if bash command writes to a real file (not /dev/null)
             local cmd=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null)
             if echo "$cmd" | grep -qE '(>|>>)'; then
+                # But skip if redirecting to /dev/null
+                if echo "$cmd" | grep -qE '(>|>>)\s*/dev/(null|stderr|stdout)'; then
+                    return 1
+                fi
                 return 0
             fi
             return 1

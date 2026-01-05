@@ -44,7 +44,7 @@ extract_file_path() {
 count_recent_file_ops() {
     local file="$1"
     if [ -f "$LOOP_FILE" ]; then
-        tail -n "$RECENT_WINDOW" "$LOOP_FILE" | grep -c "$file" 2>/dev/null || echo "0"
+        tail -n "$RECENT_WINDOW" "$LOOP_FILE" | grep -cF "$file" 2>/dev/null || echo "0"
     else
         echo "0"
     fi
@@ -60,7 +60,7 @@ detect_loop_pattern() {
     fi
     
     # Check for exact same operation repeated
-    local recent_same=$(tail -n 5 "$LOOP_FILE" | grep -c "$op|$file" 2>/dev/null || echo "0")
+    local recent_same=$(tail -n 5 "$LOOP_FILE" | grep -cF "$op|$file" 2>/dev/null || echo "0")
     
     if [ "$recent_same" -ge 3 ]; then
         return 0  # Loop detected

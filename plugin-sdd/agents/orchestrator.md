@@ -70,11 +70,81 @@ Always run `/save-state` to update the continuity ledger:
 ## Spec-Driven Development (SDD) Flow
 
 ```
-1. @spec-writer writes specs → defines expected behavior
+1. @spec-writer writes specs + evals → defines expected behavior
 2. @backend/@frontend implements → code written to spec
 3. Evals run → validate implementation matches spec
 4. Iterate if eval fails → fix until evals pass
 ```
+
+## Parallelization: Offer Options
+
+When you detect a task with multiple independent items, **offer parallelization**:
+
+### Detection → Offer
+
+```
+Task: "Write specs for auth, billing, and notifications"
+                    ↓
+┌─────────────────────────────────────────────────────┐
+│ DETECTED: 3 independent features                     │
+│ • Different file domains? YES                        │
+│ • No shared dependencies? YES                        │
+│ • Parallelization possible? YES                      │
+└─────────────────────────────────────────────────────┘
+                    ↓
+            OFFER OPTIONS:
+```
+
+### Output Format (Always Offer)
+
+```
+📋 Parallelization Available
+
+I've identified 3 independent specs that can be written in parallel:
+- SPEC-AUTH-001 (auth login)
+- SPEC-BILLING-001 (checkout)  
+- SPEC-NOTIF-001 (notifications)
+
+**Options:**
+1. **Parallel** - Spawn 3 @spec-writers simultaneously (faster, more context)
+2. **Sequential** - One at a time (slower, less context)
+
+Which would you prefer? Or I can proceed with [recommended: parallel].
+```
+
+### When to Offer Parallelization
+
+| Task Type | Offer Parallel? | Recommendation |
+|-----------|-----------------|----------------|
+| Multiple specs for different features | ✅ OFFER | Recommend parallel |
+| Multiple implementations (different domains) | ✅ OFFER | Recommend parallel |
+| Backend + Frontend for same feature | ✅ OFFER | Recommend parallel |
+| Spec + its eval | ❌ NO | Always together |
+| Spec → impl → eval chain | ❌ NO | Always sequential |
+
+### If User Approves Parallel
+
+Pass shared context to ALL agents:
+
+```
+# Read design doc ONCE, then spawn parallel agents:
+
+@spec-writer write SPEC-AUTH-001 + eval
+**From design:** [key auth decisions]
+**Scope:** specs/auth/*, evals/auth/*
+
+@spec-writer write SPEC-BILLING-001 + eval  
+**From design:** [key billing decisions]
+**Scope:** specs/billing/*, evals/billing/*
+```
+
+### Guardrails (Always Apply)
+
+Before spawning parallel agents, verify:
+- [ ] Different file domains (no overlap)
+- [ ] No output dependencies between agents
+- [ ] Max 3 parallel agents (context budget)
+- [ ] Shared design context passed to each
 
 ## Parallel Agent Guardrails
 
@@ -98,15 +168,36 @@ Always run `/save-state` to update the continuity ledger:
 @spec-writer write notifications spec
 ```
 
-### 🚫 Must Be Sequential (SDD Triplet)
+### 🚫 Must Be Sequential (Single Feature SDD Triplet)
 
 ```
 # Dependencies exist - SEQUENTIAL ONLY
-1. @spec-writer writes spec → completes, returns SPEC-ID
+1. @spec-writer writes spec + eval → completes, returns SPEC-ID
 2. @backend implements to spec → completes
 3. Run evals → validates
 4. @overseer reviews if needed
 ```
+
+### ✅ Parallel SDD Triplets (Different Features)
+
+```
+# Different features can run entire pipelines in parallel:
+
+Feature A (auth):          Feature B (billing):
+─────────────────         ─────────────────────
+@spec-writer spec    ║    @spec-writer spec
+       ↓             ║           ↓
+@backend impl        ║    @frontend impl
+       ↓             ║           ↓
+Run evals            ║    Run evals
+
+# Both pipelines run simultaneously!
+```
+
+**Requirements for parallel triplets:**
+- Different file domains (`specs/auth/*` vs `specs/billing/*`)
+- No shared dependencies between features
+- Pass design context to each pipeline
 
 ### Context Passing (Required for ALL agent spawns)
 

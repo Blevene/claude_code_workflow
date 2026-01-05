@@ -20,7 +20,7 @@ triggers:
 
 ## Safe Parallel Patterns
 
-### ✅ Different Modules
+### ✅ Different Modules (Implementation)
 ```
 @backend implement auth API
 @frontend implement dashboard UI
@@ -29,14 +29,37 @@ triggers:
 - Frontend: `src/components/*`, `src/pages/*`
 - No overlap = safe
 
-### ✅ Different Features
+### ✅ Different Specs + Evals in Parallel
 ```
-@spec-writer write billing spec
-@spec-writer write notifications spec  
+@spec-writer write SPEC-AUTH-001 + eval_login.py
+@spec-writer write SPEC-AUTH-002 + eval_password_reset.py
+@spec-writer write SPEC-BILLING-001 + eval_checkout.py
 ```
-- Billing: `specs/billing/*`
-- Notifications: `specs/notifications/*`
-- No overlap = safe
+- Each agent writes ONE spec + its eval
+- Different specs = no dependencies
+- Can parallelize as many as needed (recommend max 3)
+
+### ✅ Multiple SDD Triplets (Different Features)
+```
+# Feature A: auth
+@spec-writer write auth spec + eval → @backend implement auth
+
+# Feature B: billing (in parallel with A)
+@spec-writer write billing spec + eval → @backend implement billing
+```
+- Each triplet is independent
+- Different file domains
+- Can run entire pipelines in parallel
+
+### ✅ Backend + Frontend (Same Feature, After Spec)
+```
+# AFTER spec exists:
+@backend implement auth API (src/api/auth/*)
+@frontend implement auth UI (src/components/auth/*)
+```
+- Both implementing from SAME spec
+- Different file domains
+- Pass spec summary to both
 
 ### ✅ Independent Tests
 ```
@@ -45,6 +68,35 @@ triggers:
 ```
 - Read-only operations
 - No file modifications = safe
+
+## SDD Triplet: Sequential Within, Parallel Across
+
+The SDD triplet (spec → impl → eval) is ALWAYS sequential for a single feature:
+
+```
+Feature A (sequential):
+1. @spec-writer write spec + eval  ─┐
+2. @backend implement              ─┼─ This is ONE triplet
+3. Run evals                       ─┘
+
+Feature B (sequential):
+1. @spec-writer write spec + eval  ─┐
+2. @frontend implement             ─┼─ This is ONE triplet
+3. Run evals                       ─┘
+```
+
+**But Feature A and B can run in parallel!**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Feature A              │  Feature B                    │
+│  ──────────             │  ──────────                   │
+│  spec-writer ─────────► │  spec-writer ─────────►       │
+│  @backend ────────────► │  @frontend ────────────►      │
+│  run evals ───────────► │  run evals ───────────►       │
+└─────────────────────────────────────────────────────────┘
+        ↑ These two pipelines run IN PARALLEL
+```
 
 ## Unsafe Patterns (Use Sequential)
 
@@ -87,6 +139,27 @@ triggers:
 **Why unsafe:** Reviewer sees incomplete work
 
 **Fix:** Sequential (implement → review)
+
+### 🚫 Same Spec and Its Eval in Parallel
+```
+@spec-writer write SPEC-AUTH-001
+@spec-writer write eval for SPEC-AUTH-001
+```
+**Why unsafe:** The eval depends on THAT spec's content (behaviors, edge cases, invariants)
+
+**Fix:** Same agent writes spec + its eval together
+```
+@spec-writer write SPEC-AUTH-001 + eval_login.py
+```
+
+### ✅ Different Specs + Their Evals in Parallel
+```
+@spec-writer write SPEC-AUTH-001 + eval_login.py
+@spec-writer write SPEC-BILLING-001 + eval_checkout.py
+```
+**Why safe:** Each spec-eval pair is independent. No shared dependencies.
+
+This is the recommended pattern for multiple features!
 
 ## Context Passing Template
 

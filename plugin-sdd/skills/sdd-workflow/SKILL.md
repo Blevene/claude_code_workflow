@@ -62,12 +62,42 @@ Specs and evals encode requirements, not code structure. They verify *what* the 
 ## SDD Cycle
 
 ```
-1. @spec-writer writes specs -> defines expected behavior
-2. @spec-writer creates evals -> validation criteria
-3. @backend/@frontend implements -> code written to spec
-4. Evals run -> validate implementation matches spec
-5. If evals fail -> debug and fix (see below)
+1. @spec-writer writes specs + evals -> defines expected behavior
+2. @backend/@frontend implements -> code written to spec
+3. Evals run -> validate implementation matches spec
+4. If evals fail -> debug and fix (see below)
 ```
+
+## Parallelization Options
+
+When multiple independent tasks are detected, **offer the choice**:
+
+### Example Offer
+```
+📋 Parallelization Available
+
+3 independent specs detected:
+- SPEC-AUTH-001, SPEC-BILLING-001, SPEC-NOTIF-001
+
+Options:
+1. Parallel (faster, recommended)
+2. Sequential (one at a time)
+
+Which would you prefer?
+```
+
+### Safe to Parallelize
+| Pattern | Parallel? |
+|---------|-----------|
+| Multiple specs (different features) | ✅ Offer |
+| Backend + Frontend (after spec) | ✅ Offer |
+| Single feature pipeline | ❌ Sequential |
+
+### Guardrails
+- Max 3 parallel agents
+- Different file domains required
+- Pass shared context to all
+- No output dependencies
 
 ## Fix/Iterate Cycle
 

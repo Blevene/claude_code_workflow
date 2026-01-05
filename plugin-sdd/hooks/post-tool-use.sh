@@ -227,7 +227,7 @@ track_build_result() {
 count_recent_file_ops() {
     local file="$1"
     if [ -f "$LOOP_FILE" ]; then
-        tail -n "$RECENT_WINDOW" "$LOOP_FILE" 2>/dev/null | grep -c "$file" 2>/dev/null || echo "0"
+        tail -n "$RECENT_WINDOW" "$LOOP_FILE" 2>/dev/null | grep -cF "$file" 2>/dev/null || echo "0"
     else
         echo "0"
     fi
@@ -241,7 +241,7 @@ detect_loop_pattern() {
         return 1
     fi
     
-    local recent_same=$(tail -n 5 "$LOOP_FILE" 2>/dev/null | grep -c "$op|$file" 2>/dev/null || echo "0")
+    local recent_same=$(tail -n 5 "$LOOP_FILE" 2>/dev/null | grep -cF "$op|$file" 2>/dev/null || echo "0")
     
     if [ "$recent_same" -ge 3 ]; then
         return 0
@@ -372,8 +372,8 @@ This suggests you're stuck. Try a different approach.
             exit 2
         else
             # Non-blocking warning - output JSON to stdout
-            # Use printf for safer output
-            printf '{"continue":true,"systemMessage":"%s"}\n' "$(echo "$LOOP_WARNING" | tr '\n' ' ' | sed 's/"/\\"/g')"
+            # Use printf for safer output, escape backslashes first then quotes for valid JSON
+            printf '{"continue":true,"systemMessage":"%s"}\n' "$(echo "$LOOP_WARNING" | tr '\n' ' ' | sed 's/\\/\\\\/g; s/"/\\"/g')"
             exit 0
         fi
     fi

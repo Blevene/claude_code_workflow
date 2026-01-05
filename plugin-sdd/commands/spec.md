@@ -78,7 +78,16 @@ Properties that must ALWAYS hold:
 
 ### 3. Create Eval Script
 
-Create `evals/[module]/eval_spec_001.py` with evals for each behavior.
+Create `evals/[module]/eval_{component_name}.py` with evals for each behavior.
+
+**NAMING CONVENTION (CRITICAL):**
+```
+evals/auth/eval_login.py           ✅ Component name - unique
+evals/auth/eval_password_reset.py  ✅ Component name - unique  
+evals/auth/eval_spec_001.py        ❌ Generic - causes pytest conflicts
+```
+
+Use descriptive component names, NOT generic spec IDs. This prevents pytest collection conflicts when multiple modules have evals.
 
 ### 4. Update Traceability
 
@@ -86,7 +95,7 @@ Create `evals/[module]/eval_spec_001.py` with evals for each behavior.
 {
   "id": "$ARGUMENTS",
   "specs": ["specs/[module]/SPEC-001.md"],
-  "evals": ["evals/[module]/eval_spec_001.py"]
+  "evals": ["evals/[module]/eval_{component_name}.py"]
 }
 ```
 

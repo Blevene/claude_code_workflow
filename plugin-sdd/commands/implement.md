@@ -66,7 +66,9 @@ Create `specs/$ARGUMENTS/SPEC-001.md`:
 
 ### Phase 2: EVAL - Create Eval Scripts
 
-Create `evals/$ARGUMENTS/eval_spec_001.py`:
+Create `evals/$ARGUMENTS/eval_{component_name}.py`:
+
+**Use descriptive names** (e.g., `eval_login.py`, `eval_checkout.py`), NOT generic `eval_spec_001.py` which causes pytest collection conflicts.
 
 ```python
 """Eval for SPEC-001 - written BEFORE implementation."""

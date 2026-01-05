@@ -33,93 +33,21 @@ uv sync
 
 ### Phase 1: SPEC - Write Behavioral Specifications
 
-Create `specs/$ARGUMENTS/SPEC-001.md`:
+Create `specs/$ARGUMENTS/SPEC-001.md`.
 
-```markdown
-# SPEC-001: [Feature Name]
-
-**REQ IDs:** REQ-001
-**Status:** Draft
-
-## Overview
-[What this feature does and why]
-
-## Behavioral Specification
-
-### Input
-- **Type:** [data type]
-- **Constraints:** [validation rules]
-
-### Expected Behavior
-1. GIVEN [precondition] WHEN [action] THEN [outcome]
-2. GIVEN [error condition] WHEN [action] THEN [error handling]
-
-### Output
-- **Success:** [expected response format]
-- **Error:** [error response format]
-
-## Eval Criteria
-- [ ] Happy path produces expected output
-- [ ] Error cases return appropriate errors
-- [ ] Edge cases handled correctly
-```
+**Template:** Copy from `templates/spec-template.md`
 
 ### Phase 2: EVAL - Create Eval Scripts
 
-Create `evals/$ARGUMENTS/eval_{component_name}.py`:
+Create `evals/$ARGUMENTS/eval_{component_name}.py`.
 
-**Use descriptive names** (e.g., `eval_login.py`, `eval_checkout.py`), NOT generic `eval_spec_001.py` which causes pytest collection conflicts.
+**Template:** Copy from `templates/eval-template.py`
 
-```python
-"""Eval for SPEC-001 - written BEFORE implementation."""
-from dataclasses import dataclass
-from typing import Any
-
-@dataclass
-class EvalResult:
-    passed: bool
-    spec_id: str
-    description: str
-    expected: Any
-    actual: Any = None
-    error: str = None
-
-class SpecEval:
-    spec_id = "SPEC-001"
-
-    def eval_happy_path(self) -> EvalResult:
-        """Given valid input When processed Then returns expected output."""
-        expected = {"result": "success"}
-        # actual = module.process(input_data)  # Awaiting implementation
-        return EvalResult(
-            passed=False,
-            spec_id=self.spec_id,
-            description="Happy path",
-            expected=expected,
-            error="Awaiting implementation"
-        )
-
-    def eval_error_case(self) -> EvalResult:
-        """Given invalid input When processed Then returns error."""
-        # Awaiting implementation
-        return EvalResult(
-            passed=False,
-            spec_id=self.spec_id,
-            description="Error case",
-            expected="ValidationError",
-            error="Awaiting implementation"
-        )
-
-    def run_all(self) -> list[EvalResult]:
-        return [
-            self.eval_happy_path(),
-            self.eval_error_case(),
-        ]
-```
+**Naming:** Use descriptive names (`eval_login.py`), NOT generic (`eval_spec_001.py`).
 
 Run evals - they should FAIL (awaiting implementation):
 ```bash
-uv run python evals/$ARGUMENTS/eval_spec_001.py
+uv run python evals/$ARGUMENTS/eval_{component_name}.py
 ```
 
 ### Phase 3: IMPLEMENT - Build to Spec

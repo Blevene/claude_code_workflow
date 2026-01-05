@@ -222,13 +222,9 @@ uv run python tools/run_evals.py --all
 
 ## Loop Prevention
 
-If same issue bounces between agents >2-3 times:
-1. **Stop** the loop
-2. **Summarize** dispute neutrally
-3. **Recommend** a decision or tradeoff
-4. **Escalate** to @pm or human if needed
+**See:** `rules/loop-prevention.md` for full guidance.
 
-**Goal:** Clear, acceptable outcomes. Not perfection.
+If same issue bounces >2-3 times: stop, summarize, recommend decision.
 
 ## Interaction with Other Agents
 

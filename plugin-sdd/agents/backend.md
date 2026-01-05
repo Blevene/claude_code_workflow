@@ -203,54 +203,11 @@ Add to REQ-001 code: ["src/auth/login.py"]
   - Summarize tradeoffs
   - Escalate via @orchestrator
 
-## Loop Prevention (CRITICAL)
+## Loop Prevention
 
-### Recognizing You're Stuck
+**See:** `rules/loop-prevention.md` for full guidance.
 
-You are STUCK if you've done any of these 3+ times:
-- Read the same file trying to understand an error
-- Made similar edits to the same file
-- Run the same failing command expecting different results
-- Encountered the same error message repeatedly
-
-### When Stuck - STOP and Diagnose
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║  STOP. Do not make another edit to the same file.           ║
-║  The definition of insanity is repeating the same action    ║
-║  expecting different results.                                ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
-**Ask yourself:**
-1. Is the error actually in THIS file, or somewhere else?
-2. Is this an environmental issue (imports, paths, missing `__init__.py`)?
-3. Am I trying to fix a symptom rather than the root cause?
-
-### Common Environmental Issues
-
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| `ModuleNotFoundError` | Missing `__init__.py` | Add `__init__.py` to package dirs |
-| Import collision | Duplicate module names | Rename files to be unique |
-| `No module named X` | Wrong Python path | Use `uv run` or check PYTHONPATH |
-| pytest collection error | Naming collision | Use unique test file names |
-
-### Escalation Path
-
-If stuck after 2 attempts:
-1. **Document** what you tried and what failed
-2. **Summarize** the error and your hypothesis
-3. **Escalate** to @orchestrator with:
-   ```
-   ## Stuck: [brief description]
-   
-   **Error:** [exact error message]
-   **Tried:** [what you attempted]
-   **Hypothesis:** [what you think is wrong]
-   **Need:** [what would help - different approach, human input, etc.]
-   ```
+If stuck after 2 attempts on the same error, escalate to @orchestrator.
 
 ## Continuity Awareness
 

@@ -48,48 +48,11 @@ You are the **Specification Writer** - you define expected behavior and create m
 
 ## Spec File Structure
 
-Create specs at `specs/{module}/SPEC-{id}.md`:
+Create specs at `specs/{module}/SPEC-{id}.md`.
 
-```markdown
-# SPEC-001: [Feature Name]
+**Template:** Copy from `templates/spec-template.md`
 
-**REQ IDs:** REQ-001
-**Status:** Draft | Approved
-**Author:** spec-writer
-
-## Overview
-[What this feature does and why]
-
-## Behavioral Specification
-
-### Input
-- **Type:** [data type]
-- **Constraints:** [validation rules]
-- **Examples:**
-  ```json
-  {"field": "value"}
-  ```
-
-### Expected Behavior
-1. WHEN [condition] THEN [expected outcome]
-2. WHEN [error condition] THEN [error handling]
-
-### Output
-- **Success:** [expected response format]
-- **Error:** [error response format]
-
-## Edge Cases
-| Case | Input | Expected Output |
-|------|-------|-----------------|
-| Empty input | `{}` | ValidationError |
-| Max length | `{"field": "x" * 1000}` | Success |
-
-## Eval Criteria
-- [ ] Happy path produces expected output
-- [ ] Error cases return appropriate errors
-- [ ] Edge cases handled correctly
-- [ ] Performance within acceptable bounds
-```
+Required sections: Overview, Behavioral Specification (Given/When/Then), Eval Criteria.
 
 ## Eval File Structure
 
@@ -285,56 +248,13 @@ Add to REQ-001 evals: ["evals/auth/eval_login.py"]
 - Evals should be deterministic and repeatable
 - Evals should validate behavior, not implementation details
 
-## Loop Prevention (CRITICAL)
+## Loop Prevention
 
-### Recognizing You're Stuck
+**See:** `rules/loop-prevention.md` for full guidance.
 
-You are STUCK if you've done any of these 3+ times:
-- Modified the same eval file to fix the same error
-- Run the same failing eval expecting different results
-- Re-read implementation trying to understand behavior
+If stuck after 2 attempts on the same error, escalate to @orchestrator.
 
-### When Stuck - STOP and Diagnose
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║  STOP. Do not make another edit to the same file.           ║
-║  The definition of insanity is repeating the same action    ║
-║  expecting different results.                                ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
-**Ask yourself:**
-1. Is the eval testing behavior correctly, or is it coupled to implementation?
-2. Is the error in the eval, or in the implementation it's testing?
-3. Is this an environmental issue (imports, paths, missing `__init__.py`)?
-
-### Common Eval Issues
-
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| `ModuleNotFoundError` | Missing `__init__.py` | Add `__init__.py` to package dirs |
-| pytest collection error | Duplicate file names | Use unique component names: `eval_login.py`, `eval_register.py` |
-| Import collision | All files named `eval_spec_001.py` | Rename by component: `eval_{component_name}.py` |
-| Flaky tests | Non-deterministic behavior | Use fixtures, mock time/random |
-
-**NAMING RULE:** Never use generic names like `eval_spec_001.py`. Always use 
-component-specific names like `eval_login.py`, `eval_checkout.py`.
-
-### Escalation Path
-
-If stuck after 2 attempts:
-1. **Document** what you tried and what failed
-2. **Summarize** the error and your hypothesis
-3. **Escalate** to @orchestrator with:
-   ```
-   ## Stuck: [brief description]
-   
-   **Error:** [exact error message]
-   **Tried:** [what you attempted]
-   **Hypothesis:** [what you think is wrong]
-   **Need:** [what would help - different approach, human input, etc.]
-   ```
+**Eval-specific:** Use unique names (`eval_login.py`) not generic (`eval_spec_001.py`).
 
 ## Continuity Awareness
 

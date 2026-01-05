@@ -76,159 +76,24 @@ Always run `/save-state` to update the continuity ledger:
 4. Iterate if eval fails → fix until evals pass
 ```
 
-## Parallelization: Offer Options
+## Parallelization
 
-When you detect a task with multiple independent items, **offer parallelization**:
+**See:** `skills/parallel-agents/SKILL.md` for full patterns and examples.
 
-### Detection → Offer
+When you detect multiple independent tasks, **offer the choice**:
 
-```
-Task: "Write specs for auth, billing, and notifications"
-                    ↓
-┌─────────────────────────────────────────────────────┐
-│ DETECTED: 3 independent features                     │
-│ • Different file domains? YES                        │
-│ • No shared dependencies? YES                        │
-│ • Parallelization possible? YES                      │
-└─────────────────────────────────────────────────────┘
-                    ↓
-            OFFER OPTIONS:
-```
+| Task Type | Parallel? |
+|-----------|-----------|
+| Multiple specs (different features) | ✅ Offer |
+| Backend + Frontend (same feature, after spec) | ✅ Offer |
+| Spec + its eval | ❌ Together |
+| Spec → impl → eval chain | ❌ Sequential |
 
-### Output Format (Always Offer)
-
-```
-📋 Parallelization Available
-
-I've identified 3 independent specs that can be written in parallel:
-- SPEC-AUTH-001 (auth login)
-- SPEC-BILLING-001 (checkout)  
-- SPEC-NOTIF-001 (notifications)
-
-**Options:**
-1. **Parallel** - Spawn 3 @spec-writers simultaneously (faster, more context)
-2. **Sequential** - One at a time (slower, less context)
-
-Which would you prefer? Or I can proceed with [recommended: parallel].
-```
-
-### When to Offer Parallelization
-
-| Task Type | Offer Parallel? | Recommendation |
-|-----------|-----------------|----------------|
-| Multiple specs for different features | ✅ OFFER | Recommend parallel |
-| Multiple implementations (different domains) | ✅ OFFER | Recommend parallel |
-| Backend + Frontend for same feature | ✅ OFFER | Recommend parallel |
-| Spec + its eval | ❌ NO | Always together |
-| Spec → impl → eval chain | ❌ NO | Always sequential |
-
-### If User Approves Parallel
-
-Pass shared context to ALL agents:
-
-```
-# Read design doc ONCE, then spawn parallel agents:
-
-@spec-writer write SPEC-AUTH-001 + eval
-**From design:** [key auth decisions]
-**Scope:** specs/auth/*, evals/auth/*
-
-@spec-writer write SPEC-BILLING-001 + eval  
-**From design:** [key billing decisions]
-**Scope:** specs/billing/*, evals/billing/*
-```
-
-### Guardrails (Always Apply)
-
-Before spawning parallel agents, verify:
+**Quick check before spawning:**
 - [ ] Different file domains (no overlap)
-- [ ] No output dependencies between agents
-- [ ] Max 3 parallel agents (context budget)
-- [ ] Shared design context passed to each
-
-## Parallel Agent Guardrails
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║  Parallel agents OK when: different domains, no dependencies ║
-║  Sequential required when: same files, dependent outputs     ║
-║  ALWAYS: Pass shared context, don't make agents re-read      ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
-### ✅ Safe Parallelization
-
-```
-# Different modules - SAFE
-@backend implement auth API (src/api/auth/*)
-@frontend implement settings UI (src/components/settings/*)
-
-# Different features with no overlap - SAFE
-@spec-writer write billing spec
-@spec-writer write notifications spec
-```
-
-### 🚫 Must Be Sequential (Single Feature SDD Triplet)
-
-```
-# Dependencies exist - SEQUENTIAL ONLY
-1. @spec-writer writes spec + eval → completes, returns SPEC-ID
-2. @backend implements to spec → completes
-3. Run evals → validates
-4. @overseer reviews if needed
-```
-
-### ✅ Parallel SDD Triplets (Different Features)
-
-```
-# Different features can run entire pipelines in parallel:
-
-Feature A (auth):          Feature B (billing):
-─────────────────         ─────────────────────
-@spec-writer spec    ║    @spec-writer spec
-       ↓             ║           ↓
-@backend impl        ║    @frontend impl
-       ↓             ║           ↓
-Run evals            ║    Run evals
-
-# Both pipelines run simultaneously!
-```
-
-**Requirements for parallel triplets:**
-- Different file domains (`specs/auth/*` vs `specs/billing/*`)
-- No shared dependencies between features
-- Pass design context to each pipeline
-
-### Context Passing (Required for ALL agent spawns)
-
-Read shared context ONCE, pass to each agent:
-
-```
-@[agent] [task]
-
-**Design Summary:**
-[2-3 key decisions from design doc - DON'T make agent re-read]
-
-**Key Requirements:**
-- REQ-001: [brief description]
-- REQ-002: [brief description]
-
-**Files to work with:**
-- [specific file paths only this agent should touch]
-
-**Shared context provided - DO NOT re-read:**
-- docs/design/*.md
-- traceability_matrix.json
-```
-
-### Parallel Spawning Checklist
-
-Before spawning agents in parallel, verify:
-- [ ] Agents work on **different file domains** (no overlap)
-- [ ] No agent **depends on another's output**
-- [ ] **Max 2-3** agents at once
-- [ ] **Shared context passed** to each (design summary, requirements)
-- [ ] Each agent has **explicit file scope** (which files to touch)
+- [ ] No output dependencies
+- [ ] Max 3 parallel agents
+- [ ] Shared context passed to each
 
 ## Agent Routing
 
@@ -243,58 +108,15 @@ Before spawning agents in parallel, verify:
 | Eval Validation | @spec-writer | @frontend/@backend |
 | Review | @overseer | all |
 
-## Loop Prevention (CRITICAL)
+## Loop Prevention
 
-Do NOT allow agents to bounce on the same issue >2-3 times.
+**See:** `rules/loop-prevention.md` for full guidance.
 
-If you detect repeated back-and-forth:
-1. **Stop** the loop
-2. **Summarize** the disagreement
-3. **Escalate** to @pm, @architect, or @overseer for decision
-4. **Document** the decision
+Do NOT allow agents to bounce on the same issue >2-3 times. When an agent escalates as stuck:
 
-### Handling "Stuck" Escalations
-
-When an agent reports they're stuck (## Stuck: ...), take action:
-
-```
-╔══════════════════════════════════════════════════════════════╗
-║  NEVER send the agent back to retry the same approach.      ║
-║  They escalated because retrying didn't work.               ║
-╚══════════════════════════════════════════════════════════════╝
-```
-
-**Decision Tree:**
-
-1. **Environmental issue** (imports, paths, `__init__.py`, naming collision)?
-   → Fix the environment, not the code. Often requires:
-   - Adding `__init__.py` files
-   - Renaming files to be unique
-   - Fixing Python path configuration
-   
-2. **Wrong file being modified** (error is elsewhere)?
-   → Redirect agent to the ACTUAL source of the problem
-   
-3. **Architecture issue** (circular deps, wrong abstraction)?
-   → Route to @architect for design revision
-   
-4. **Unclear requirements** (spec ambiguous)?
-   → Route to @pm for clarification
-   
-5. **External dependency** (API changed, service down)?
-   → Document blocker, move to different task
-
-**Response to Stuck Agent:**
-
-```
-📋 Stuck Resolution
-
-**Issue:** [from agent's report]
-**Root Cause:** [your analysis]
-**Resolution:** [what to do instead]
-
-Next action: [specific instruction that is NOT "try again"]
-```
+1. **Never** send them back to retry the same approach
+2. Apply decision tree: Environmental? Wrong file? Architecture? Requirements?
+3. Give specific new direction, not "try again"
 
 ## Python Environment (CRITICAL)
 

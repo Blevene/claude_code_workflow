@@ -137,84 +137,13 @@ This creates `.git/claude/commits/{hash}/reasoning.md` capturing build attempts.
 4. **Check related specs** - Ensure alignment with existing specs
 5. **Apply learnings** - Incorporate insights into current work
 
-## Examples
-
-### Artifact Index Queries (Design & Approach)
-
-```bash
-# Before implementing authentication
-uv run python tools/artifact_query.py "authentication login session"
-
-# Finding how we structured something before
-uv run python tools/artifact_query.py "database migration schema"
-
-# Checking if we've built similar features
-uv run python tools/artifact_query.py "user registration signup"
-```
-
-### Commit Reasoning Queries (Build History)
-
-```bash
-# Debugging a recurring error - what was tried before?
-./plugin-sdd/scripts/search-reasoning.sh "ModuleNotFoundError" --failed
-
-# Before implementing - what patterns worked?
-./plugin-sdd/scripts/search-reasoning.sh "validation" --passed
-
-# How many attempts did similar work take?
-./plugin-sdd/scripts/search-reasoning.sh "rate limiting"
-
-# Find commits related to specific module
-./plugin-sdd/scripts/search-reasoning.sh "src/auth"
-```
-
-### Combined Search Strategy
-
-For comprehensive recall, search both systems:
-
-```bash
-# 1. Check high-level approach from artifacts
-uv run python tools/artifact_query.py "OAuth implementation"
-
-# 2. Check specific build failures from reasoning
-./plugin-sdd/scripts/search-reasoning.sh "OAuth" --failed
-
-# 3. Apply learnings to current implementation
-```
-
 ## Maintaining the Index
 
-The index should be updated when:
-- After completing major tasks (handoffs created)
-- After creating new specs
-- Periodically during long sessions
-
 ```bash
-# Re-index everything
-uv run python tools/artifact_index.py --all
-
-# Index specific types
-uv run python tools/artifact_index.py --handoffs
-uv run python tools/artifact_index.py --specs
+uv run python tools/artifact_index.py --all  # Re-index everything
 ```
 
-## Creating Good Handoffs for Future Recall
+## Good Handoffs for Future Recall
 
-When completing tasks, include post-mortem sections:
-
-```markdown
-## What Worked
-- Approach X succeeded because...
-- Pattern Y was effective for...
-
-## What Failed
-- Tried Z but it failed because...
-- Avoid W approach due to...
-
-## Key Decisions
-- Chose A over B because...
-- Constraint C drove decision D...
-```
-
-This ensures future sessions can learn from your experience.
+Include post-mortem sections: **What Worked**, **What Failed**, **Key Decisions**.
 

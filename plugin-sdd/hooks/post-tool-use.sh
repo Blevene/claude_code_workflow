@@ -78,6 +78,24 @@ SAME_FILE_WARN=5      # Warn after 5 writes to same file (was 3)
 SAME_FILE_BLOCK=8     # Block after 8 writes (was 5)
 RECENT_WINDOW=15      # Shorter window = less accumulation (was 20)
 
+# Files excluded from loop detection (legitimate high-churn workflow files)
+is_excluded_from_loop_detection() {
+    local file="$1"
+    case "$file" in
+        # Traceability matrix - updated after every spec/impl
+        *traceability_matrix.json) return 0 ;;
+        # Plan files - frequently updated during planning
+        *thoughts/shared/plans/*) return 0 ;;
+        # Ledger files - updated throughout session
+        *thoughts/ledgers/*) return 0 ;;
+        # Handoff files - updated during handoffs
+        *thoughts/shared/handoffs/*) return 0 ;;
+        # Cache files
+        *.claude/cache/*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # ============================================
 # FILE PATH EXTRACTION
 # ============================================
@@ -308,6 +326,11 @@ if [ -n "$FILE_PATH" ] && is_write_operation; then
         if [ -x "$LEDGER_SCRIPT" ]; then
             "$LEDGER_SCRIPT" "periodic" "$SESSION_ID" "" "" "Auto-update after $TOTAL_WRITES file ops" 2>/dev/null || true
         fi
+    fi
+    
+    # Skip loop detection for workflow files that are legitimately high-churn
+    if is_excluded_from_loop_detection "$FILE_PATH"; then
+        exit 0
     fi
     
     # Count WRITE operations on this file

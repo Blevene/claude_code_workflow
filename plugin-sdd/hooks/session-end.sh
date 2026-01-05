@@ -1,12 +1,23 @@
 #!/bin/bash
 # SessionEnd Hook - Update ledger and cleanup on session end
 # Triggered by: clear, logout, prompt_input_exit, other
-set -e
+
+# Don't use set -e - handle errors gracefully
+# Redirect stderr to prevent error output
+exec 2>/dev/null
+
+# Ensure clean exit on any failure
+trap 'exit 0' ERR
+
+# Verify jq is available
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
 
 # Read input from stdin
-INPUT=$(cat)
-REASON=$(echo "$INPUT" | jq -r '.reason // "other"')
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
+INPUT=$(head -c 50000 2>/dev/null)
+REASON=$(echo "$INPUT" | jq -r '.reason // "other"' 2>/dev/null) || REASON="other"
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || SESSION_ID="unknown"
 
 # Paths
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"

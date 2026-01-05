@@ -10,14 +10,28 @@
 # - Project structure detection
 
 # Don't use set -e - we want to handle errors gracefully
-# set -e
+# Redirect all stderr to /dev/null by default to prevent error output
+exec 2>/dev/null
 
-# Read input from stdin
-INPUT=$(cat)
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
-TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // "{}"')
-TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response // "{}"')
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
+# Ensure clean exit on any failure
+trap 'exit 0' ERR
+
+# Read input from stdin (limit to prevent memory issues)
+INPUT=$(head -c 100000)
+
+# Verify jq is available
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
+
+# Parse input safely
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"' 2>/dev/null) || exit 0
+TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // "{}"' 2>/dev/null) || exit 0
+TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response // "{}"' 2>/dev/null) || exit 0
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || exit 0
+
+# Bail if we couldn't parse
+[ -z "$TOOL_NAME" ] && exit 0
 
 # Paths
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
@@ -25,11 +39,26 @@ CACHE_DIR="$PROJECT_DIR/.claude/cache"
 TRACKING_FILE="$CACHE_DIR/session-$SESSION_ID-files.txt"
 LOOP_FILE="$CACHE_DIR/session-$SESSION_ID-loops.txt"
 BUILD_FILE="$CACHE_DIR/session-$SESSION_ID-builds.txt"
+DEDUP_FILE="$CACHE_DIR/session-$SESSION_ID-dedup.txt"
 
 # Git-local reasoning paths (for /commit command)
 GIT_CLAUDE_DIR="$PROJECT_DIR/.git/claude"
 
 mkdir -p "$CACHE_DIR" 2>/dev/null || true
+
+# ============================================
+# DUPLICATE DETECTION (prevents double-firing)
+# ============================================
+# Create a hash of the input to detect duplicate calls
+INPUT_HASH=$(echo "$TOOL_NAME:$TOOL_INPUT" | md5sum 2>/dev/null | cut -c1-16) || INPUT_HASH=""
+if [ -n "$INPUT_HASH" ]; then
+    LAST_HASH=$(cat "$DEDUP_FILE" 2>/dev/null) || LAST_HASH=""
+    if [ "$INPUT_HASH" = "$LAST_HASH" ]; then
+        # Duplicate call detected - skip processing
+        exit 0
+    fi
+    echo "$INPUT_HASH" > "$DEDUP_FILE" 2>/dev/null || true
+fi
 
 # Get current branch for attempts file
 get_attempts_file() {
@@ -227,13 +256,13 @@ detect_loop_pattern() {
 
 # Handle Bash commands specially for build tracking
 if [ "$TOOL_NAME" = "Bash" ] || [ "$TOOL_NAME" = "bash" ]; then
-    CMD=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null)
-    EXIT_CODE=$(echo "$TOOL_RESPONSE" | jq -r '.exit_code // .exitCode // "unknown"' 2>/dev/null)
-    # Extract stdout/stderr for error capture
-    CMD_OUTPUT=$(echo "$TOOL_RESPONSE" | jq -r '.stdout // .stderr // .output // ""' 2>/dev/null | tail -50)
+    CMD=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null) || CMD=""
+    EXIT_CODE=$(echo "$TOOL_RESPONSE" | jq -r '.exit_code // .exitCode // "unknown"' 2>/dev/null) || EXIT_CODE="unknown"
+    # Extract stdout/stderr for error capture (limit to prevent issues)
+    CMD_OUTPUT=$(echo "$TOOL_RESPONSE" | jq -r '.stdout // .stderr // .output // ""' 2>/dev/null | tail -20) || CMD_OUTPUT=""
     
     if [ -n "$CMD" ]; then
-        track_build_result "$CMD" "$EXIT_CODE" "$CMD_OUTPUT"
+        track_build_result "$CMD" "$EXIT_CODE" "$CMD_OUTPUT" || true
     fi
 fi
 
@@ -337,17 +366,18 @@ This suggests you're stuck. Try a different approach.
     # Output warning if detected
     if [ -n "$LOOP_WARNING" ]; then
         if [ "$SHOULD_BLOCK" = true ]; then
-            echo "$LOOP_WARNING" >&2
+            # Re-enable stderr just for this message
+            exec 2>&1
+            echo "$LOOP_WARNING"
             exit 2
         else
-            jq -n --arg warning "$LOOP_WARNING" '{
-                "continue": true,
-                "systemMessage": $warning
-            }'
+            # Non-blocking warning - output JSON to stdout
+            # Use printf for safer output
+            printf '{"continue":true,"systemMessage":"%s"}\n' "$(echo "$LOOP_WARNING" | tr '\n' ' ' | sed 's/"/\\"/g')"
             exit 0
         fi
     fi
 fi
 
-# Normal exit - continue without output
+# Normal exit - continue without output (MUST exit 0)
 exit 0

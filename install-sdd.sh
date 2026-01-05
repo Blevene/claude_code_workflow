@@ -18,13 +18,15 @@ mkdir -p "$DEST_PLUGIN"
 cp -R "$SRC"/* "$DEST_PLUGIN/"
 echo "   ✓ Plugin directory created"
 
-# 2. Copy hooks to global location
+# 2. Copy hooks to global location (scripts only, NOT hooks.json - use settings.json)
 echo ""
 echo "2. Installing hooks to $DEST_ROOT/hooks/..."
 mkdir -p "$DEST_ROOT/hooks"
 cp "$SRC"/hooks/*.sh "$DEST_ROOT/hooks/"
 chmod +x "$DEST_ROOT/hooks/"*.sh
-echo "   ✓ Hooks installed"
+# Remove any old hooks.json that could cause double-firing
+rm -f "$DEST_ROOT/hooks/hooks.json" 2>/dev/null || true
+echo "   ✓ Hooks installed (using settings.json for hook config)"
 
 # 3. Copy scripts to global location
 echo ""

@@ -1,13 +1,23 @@
 #!/bin/bash
 # PreCompact Hook - Creates auto-handoff before compaction
 # Triggered by: auto (system compaction), manual (user requested)
-set -e
 
-# Read input from stdin
-INPUT=$(cat)
-TRIGGER=$(echo "$INPUT" | jq -r '.trigger // "auto"')
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
-TRANSCRIPT=$(echo "$INPUT" | jq -r '.transcript // ""')
+# Don't use set -e globally - handle errors gracefully
+# Redirect stderr to prevent error output (except for manual blocking)
+exec 2>/dev/null
+
+# Read input from stdin (limit size for safety)
+INPUT=$(head -c 500000 2>/dev/null)
+
+# Verify jq is available - if not, just exit cleanly
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
+
+# Parse input safely
+TRIGGER=$(echo "$INPUT" | jq -r '.trigger // "auto"' 2>/dev/null) || TRIGGER="auto"
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || SESSION_ID="unknown"
+TRANSCRIPT=$(echo "$INPUT" | jq -r '.transcript // ""' 2>/dev/null | head -c 100000) || TRANSCRIPT=""
 
 # Paths
 # CLAUDE_PROJECT_DIR = user's project directory (for user files like ledgers)
@@ -23,8 +33,9 @@ mkdir -p "$LEDGER_DIR"
 
 # For manual compaction, block and prompt for ledger update
 if [ "$TRIGGER" = "manual" ]; then
-    # Exit code 2 blocks with stderr shown to user
-    echo "⚠️ Manual compaction blocked. Please run /save-state first to update the continuity ledger, then use /clear instead of compact. This preserves full context fidelity." >&2
+    # Re-enable stderr for blocking message
+    exec 2>&1
+    echo "⚠️ Manual compaction blocked. Please run /save-state first to update the continuity ledger, then use /clear instead of compact. This preserves full context fidelity."
     exit 2
 fi
 

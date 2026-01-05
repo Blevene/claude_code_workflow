@@ -5,10 +5,21 @@
 # Note: Does NOT run on user interrupt (Ctrl+C)
 # Can block Claude from stopping with decision: "block" + reason
 
+# Redirect stderr to prevent error output
+exec 2>/dev/null
+
+# Ensure clean exit on any failure (default to allow stop)
+trap 'exit 0' ERR
+
+# Verify jq is available
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
+
 # Read input from stdin
-INPUT=$(cat)
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null)
-STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false' 2>/dev/null)
+INPUT=$(head -c 50000 2>/dev/null)
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || SESSION_ID="unknown"
+STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false' 2>/dev/null) || STOP_HOOK_ACTIVE="false"
 
 # Paths
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"

@@ -1,7 +1,13 @@
 #!/bin/bash
 # Shared ledger update helper - called by other hooks to maintain continuity ledger
 # Usage: ./update-ledger.sh <trigger> <session_id> [agent_name] [phase] [notes]
-set -e
+
+# Don't use set -e - handle errors gracefully
+# Redirect stderr to prevent error output
+exec 2>/dev/null
+
+# Ensure clean exit on any failure
+trap 'exit 0' ERR
 
 TRIGGER="${1:-auto}"
 SESSION_ID="${2:-unknown}"

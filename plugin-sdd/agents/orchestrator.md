@@ -76,6 +76,69 @@ Always run `/save-state` to update the continuity ledger:
 4. Iterate if eval fails → fix until evals pass
 ```
 
+## Parallel Agent Guardrails
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  Parallel agents OK when: different domains, no dependencies ║
+║  Sequential required when: same files, dependent outputs     ║
+║  ALWAYS: Pass shared context, don't make agents re-read      ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+### ✅ Safe Parallelization
+
+```
+# Different modules - SAFE
+@backend implement auth API (src/api/auth/*)
+@frontend implement settings UI (src/components/settings/*)
+
+# Different features with no overlap - SAFE
+@spec-writer write billing spec
+@spec-writer write notifications spec
+```
+
+### 🚫 Must Be Sequential (SDD Triplet)
+
+```
+# Dependencies exist - SEQUENTIAL ONLY
+1. @spec-writer writes spec → completes, returns SPEC-ID
+2. @backend implements to spec → completes
+3. Run evals → validates
+4. @overseer reviews if needed
+```
+
+### Context Passing (Required for ALL agent spawns)
+
+Read shared context ONCE, pass to each agent:
+
+```
+@[agent] [task]
+
+**Design Summary:**
+[2-3 key decisions from design doc - DON'T make agent re-read]
+
+**Key Requirements:**
+- REQ-001: [brief description]
+- REQ-002: [brief description]
+
+**Files to work with:**
+- [specific file paths only this agent should touch]
+
+**Shared context provided - DO NOT re-read:**
+- docs/design/*.md
+- traceability_matrix.json
+```
+
+### Parallel Spawning Checklist
+
+Before spawning agents in parallel, verify:
+- [ ] Agents work on **different file domains** (no overlap)
+- [ ] No agent **depends on another's output**
+- [ ] **Max 2-3** agents at once
+- [ ] **Shared context passed** to each (design summary, requirements)
+- [ ] Each agent has **explicit file scope** (which files to touch)
+
 ## Agent Routing
 
 | Task Type | Primary Agent | Collaborators |

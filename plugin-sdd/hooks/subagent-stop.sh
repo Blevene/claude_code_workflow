@@ -1,14 +1,27 @@
 #!/bin/bash
 # SubagentStop Hook - Captures agent output and creates task handoffs
 # Triggered by: when any subagent completes
-set -e
 
-# Read input from stdin
-INPUT=$(cat)
-AGENT_NAME=$(echo "$INPUT" | jq -r '.agent_name // "unknown"')
-AGENT_OUTPUT=$(echo "$INPUT" | jq -r '.output // ""')
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
-TASK_ID=$(echo "$INPUT" | jq -r '.task_id // ""')
+# Don't use set -e - handle errors gracefully
+# Redirect stderr to prevent error output
+exec 2>/dev/null
+
+# Ensure clean exit on any failure
+trap 'exit 0' ERR
+
+# Read input from stdin (limit size)
+INPUT=$(head -c 500000)
+
+# Verify jq is available
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
+
+# Parse input safely
+AGENT_NAME=$(echo "$INPUT" | jq -r '.agent_name // "unknown"' 2>/dev/null) || exit 0
+AGENT_OUTPUT=$(echo "$INPUT" | jq -r '.output // ""' 2>/dev/null | head -c 50000) || AGENT_OUTPUT=""
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || exit 0
+TASK_ID=$(echo "$INPUT" | jq -r '.task_id // ""' 2>/dev/null) || TASK_ID=""
 
 # Paths
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"

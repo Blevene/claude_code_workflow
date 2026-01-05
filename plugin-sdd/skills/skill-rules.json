@@ -170,6 +170,20 @@
           "why.*hook"
         ]
       }
+    },
+    "parallel-agents": {
+      "type": "guardrail",
+      "enforcement": "warn",
+      "priority": "critical",
+      "promptTriggers": {
+        "keywords": ["parallel", "simultaneously", "at the same time", "spawn both", "multiple agents"],
+        "intentPatterns": [
+          "@\\w+.*@\\w+",
+          "spawn.*parallel",
+          "run.*same.*time",
+          "both.*agents"
+        ]
+      }
     }
   },
   "agents": {

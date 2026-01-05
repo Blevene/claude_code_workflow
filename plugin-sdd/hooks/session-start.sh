@@ -6,12 +6,23 @@
 # - Extracts only essential sections (Goal, Phase, Now)
 # - Truncates handoffs to 1500 chars max
 # - Removes redundant boilerplate
-set -e
+
+# Don't use set -e - handle errors gracefully
+# Redirect stderr to prevent error output
+exec 2>/dev/null
+
+# Ensure clean exit on any failure
+trap 'exit 0' ERR
+
+# Verify jq is available
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
 
 # Read input from stdin
-INPUT=$(cat)
-SOURCE=$(echo "$INPUT" | jq -r '.source // "startup"')
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
+INPUT=$(head -c 50000 2>/dev/null)
+SOURCE=$(echo "$INPUT" | jq -r '.source // "startup"' 2>/dev/null) || SOURCE="startup"
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || SESSION_ID="unknown"
 
 # Paths
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"

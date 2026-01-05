@@ -8,10 +8,20 @@
 # - SDD workflow reminders
 
 # Don't use set -e - we want to handle errors gracefully
+# Redirect stderr to prevent error output
+exec 2>/dev/null
+
+# Ensure clean exit on any failure
+trap 'exit 0' ERR
+
+# Verify jq is available
+if ! command -v jq &>/dev/null; then
+    exit 0
+fi
 
 # Read input from stdin
-INPUT=$(cat)
-USER_MESSAGE=$(echo "$INPUT" | jq -r '.prompt // .message // ""' 2>/dev/null)
+INPUT=$(head -c 100000 2>/dev/null)
+USER_MESSAGE=$(echo "$INPUT" | jq -r '.prompt // .message // ""' 2>/dev/null) || USER_MESSAGE=""
 
 # Get session ID - use same fallback as status.sh to ensure file paths match
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""' 2>/dev/null)

@@ -17,8 +17,9 @@ ls evals/$ARGUMENTS/eval_*.py
 ### 2. Run Evals
 
 ```bash
-# Run specific module evals
-uv run python evals/$ARGUMENTS/eval_spec_001.py
+# Run a specific eval (use component name, not spec number)
+uv run python evals/$ARGUMENTS/eval_login.py
+uv run python evals/$ARGUMENTS/eval_registration.py
 
 # Or run all evals for module
 uv run python tools/run_evals.py --module $ARGUMENTS
@@ -26,6 +27,10 @@ uv run python tools/run_evals.py --module $ARGUMENTS
 # Or run all evals
 uv run python tools/run_evals.py --all
 ```
+
+**NOTE:** Eval files should be named by component (e.g., `eval_login.py`), 
+not by spec number (e.g., `eval_spec_001.py`). This prevents pytest 
+collection conflicts and makes evals easier to identify.
 
 ### 3. Interpret Results
 

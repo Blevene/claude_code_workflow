@@ -1,12 +1,22 @@
 #!/bin/bash
-# PostToolUse Hook - Tracks file modifications AND detects loop patterns
-# Triggered by: Edit, Write, Bash, Read
-set -e
+# PostToolUse Hook - Tracks file modifications, detects loops, tracks build/test results
+# Triggered by: Edit, Write, Bash, MultiEdit, str_replace_editor
+#
+# Features (inspired by Continuous-Claude-v2):
+# - File modification tracking
+# - Loop detection to prevent repetitive edits
+# - Build/test pass/fail tracking
+# - JSONL attempts logging for commit reasoning
+# - Project structure detection
+
+# Don't use set -e - we want to handle errors gracefully
+# set -e
 
 # Read input from stdin
 INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
 TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // "{}"')
+TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response // "{}"')
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
 
 # Paths
@@ -14,43 +24,186 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 CACHE_DIR="$PROJECT_DIR/.claude/cache"
 TRACKING_FILE="$CACHE_DIR/session-$SESSION_ID-files.txt"
 LOOP_FILE="$CACHE_DIR/session-$SESSION_ID-loops.txt"
+BUILD_FILE="$CACHE_DIR/session-$SESSION_ID-builds.txt"
 
-mkdir -p "$CACHE_DIR"
+# Git-local reasoning paths (for /commit command)
+GIT_CLAUDE_DIR="$PROJECT_DIR/.git/claude"
+
+mkdir -p "$CACHE_DIR" 2>/dev/null || true
+
+# Get current branch for attempts file
+get_attempts_file() {
+    if [ -d "$PROJECT_DIR/.git" ]; then
+        local branch=$(git -C "$PROJECT_DIR" branch --show-current 2>/dev/null || echo "unknown")
+        local safe_branch=$(echo "$branch" | tr '/' '-')
+        local attempts_dir="$GIT_CLAUDE_DIR/branches/$safe_branch"
+        mkdir -p "$attempts_dir" 2>/dev/null || true
+        echo "$attempts_dir/attempts.jsonl"
+    else
+        echo ""
+    fi
+}
 
 # Loop detection thresholds
-SAME_FILE_WARN=3      # Warn after 3 operations on same file
-SAME_FILE_BLOCK=5     # Block after 5 operations on same file
-RECENT_WINDOW=20      # Look at last 20 operations for pattern detection
+SAME_FILE_WARN=3
+SAME_FILE_BLOCK=5
+RECENT_WINDOW=20
 
-# Extract file path from tool input based on tool type
+# ============================================
+# FILE PATH EXTRACTION
+# ============================================
 extract_file_path() {
     case "$TOOL_NAME" in
-        Edit|Write|str_replace_editor)
-            echo "$TOOL_INPUT" | jq -r '.file_path // .path // empty'
-            ;;
-        Read|view|read_file)
-            echo "$TOOL_INPUT" | jq -r '.file_path // .path // .target_file // empty'
+        Edit|Write|str_replace_editor|MultiEdit)
+            echo "$TOOL_INPUT" | jq -r '.file_path // .path // empty' 2>/dev/null
             ;;
         Bash|bash)
-            # Try to extract file paths from bash commands
-            local cmd=$(echo "$TOOL_INPUT" | jq -r '.command // empty')
-            # Look for common file-modifying patterns
-            echo "$cmd" | grep -oE '(>|>>)\s*[^\s;|&]+' | sed 's/[>]\+\s*//' | head -1 || true
+            local cmd=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null)
+            echo "$cmd" | grep -oE '(>|>>)\s*[^\s;|&]+' | sed 's/[>]\+\s*//' | head -1 2>/dev/null || true
+            ;;
+        *)
+            # Read operations and unknown tools - don't track for loop detection
+            # Reading files repeatedly is normal behavior
             ;;
     esac
 }
 
-# Count recent operations on a specific file
+# Check if this is a write operation (for loop detection)
+is_write_operation() {
+    case "$TOOL_NAME" in
+        Edit|Write|str_replace_editor|MultiEdit)
+            return 0
+            ;;
+        Bash|bash)
+            # Check if bash command writes to a file
+            local cmd=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null)
+            if echo "$cmd" | grep -qE '(>|>>)'; then
+                return 0
+            fi
+            return 1
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# ============================================
+# BUILD/TEST TRACKING (from Continuous-Claude-v2)
+# ============================================
+track_build_result() {
+    local cmd="$1"
+    local exit_code="$2"
+    local output="$3"
+    local timestamp=$(date -Iseconds)
+    
+    # Detect build/test commands
+    local is_build=false
+    local is_test=false
+    local build_type=""
+    
+    case "$cmd" in
+        *"npm run build"*|*"npm build"*|*"yarn build"*|*"pnpm build"*)
+            is_build=true
+            build_type="npm-build"
+            ;;
+        *"npm run test"*|*"npm test"*|*"yarn test"*|*"jest"*|*"vitest"*)
+            is_test=true
+            build_type="npm-test"
+            ;;
+        *"pytest"*|*"python -m pytest"*|*"uv run pytest"*)
+            is_test=true
+            build_type="pytest"
+            ;;
+        *"uv run python tools/run_evals"*|*"run_evals.py"*)
+            is_test=true
+            build_type="sdd-evals"
+            ;;
+        *"cargo build"*|*"cargo check"*)
+            is_build=true
+            build_type="cargo-build"
+            ;;
+        *"cargo test"*)
+            is_test=true
+            build_type="cargo-test"
+            ;;
+        *"go build"*)
+            is_build=true
+            build_type="go-build"
+            ;;
+        *"go test"*)
+            is_test=true
+            build_type="go-test"
+            ;;
+        *"tsc"*|*"npx tsc"*)
+            is_build=true
+            build_type="typescript"
+            ;;
+        *"make"*|*"cmake"*)
+            is_build=true
+            build_type="make"
+            ;;
+    esac
+    
+    if [ "$is_build" = true ] || [ "$is_test" = true ]; then
+        local result="fail"
+        if [ "$exit_code" = "0" ]; then
+            result="pass"
+        fi
+        
+        local entry_type="build"
+        if [ "$is_test" = true ]; then
+            entry_type="test"
+        fi
+        
+        # Session-scoped tracking (for stop hook summary)
+        echo "$timestamp|$entry_type|$build_type|$result" >> "$BUILD_FILE"
+        
+        # Branch-scoped JSONL tracking (for /commit reasoning)
+        local attempts_file=$(get_attempts_file)
+        if [ -n "$attempts_file" ]; then
+            # Extract first line of error for JSONL (escape for JSON)
+            local error_line=""
+            if [ "$result" = "fail" ] && [ -n "$output" ]; then
+                # Get last meaningful error line (skip empty lines)
+                error_line=$(echo "$output" | grep -E "(Error|error|Exception|FAILED|failed|AssertionError)" | tail -1 | cut -c1-200 | tr '"' "'" | tr '\n' ' ')
+            fi
+            
+            # Build JSONL entry
+            if [ "$result" = "fail" ]; then
+                jq -n -c \
+                    --arg type "${entry_type}_fail" \
+                    --arg timestamp "$timestamp" \
+                    --arg command "$cmd" \
+                    --arg build_type "$build_type" \
+                    --arg error "$error_line" \
+                    '{type: $type, timestamp: $timestamp, command: $command, build_type: $build_type, error: $error}' \
+                    >> "$attempts_file" 2>/dev/null || true
+            else
+                jq -n -c \
+                    --arg type "${entry_type}_pass" \
+                    --arg timestamp "$timestamp" \
+                    --arg command "$cmd" \
+                    --arg build_type "$build_type" \
+                    '{type: $type, timestamp: $timestamp, command: $command, build_type: $build_type}' \
+                    >> "$attempts_file" 2>/dev/null || true
+            fi
+        fi
+    fi
+}
+
+# ============================================
+# LOOP DETECTION
+# ============================================
 count_recent_file_ops() {
     local file="$1"
     if [ -f "$LOOP_FILE" ]; then
-        tail -n "$RECENT_WINDOW" "$LOOP_FILE" | grep -c "$file" 2>/dev/null || echo "0"
+        tail -n "$RECENT_WINDOW" "$LOOP_FILE" 2>/dev/null | grep -c "$file" 2>/dev/null || echo "0"
     else
         echo "0"
     fi
 }
 
-# Detect repetitive patterns (same file, same operation type)
 detect_loop_pattern() {
     local file="$1"
     local op="$2"
@@ -59,28 +212,66 @@ detect_loop_pattern() {
         return 1
     fi
     
-    # Check for exact same operation repeated
-    local recent_same=$(tail -n 5 "$LOOP_FILE" | grep -c "$op|$file" 2>/dev/null || echo "0")
+    local recent_same=$(tail -n 5 "$LOOP_FILE" 2>/dev/null | grep -c "$op|$file" 2>/dev/null || echo "0")
     
     if [ "$recent_same" -ge 3 ]; then
-        return 0  # Loop detected
+        return 0
     fi
     
     return 1
 }
 
-# Track the operation
+# ============================================
+# MAIN LOGIC
+# ============================================
+
+# Handle Bash commands specially for build tracking
+if [ "$TOOL_NAME" = "Bash" ] || [ "$TOOL_NAME" = "bash" ]; then
+    CMD=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null)
+    EXIT_CODE=$(echo "$TOOL_RESPONSE" | jq -r '.exit_code // .exitCode // "unknown"' 2>/dev/null)
+    # Extract stdout/stderr for error capture
+    CMD_OUTPUT=$(echo "$TOOL_RESPONSE" | jq -r '.stdout // .stderr // .output // ""' 2>/dev/null | tail -50)
+    
+    if [ -n "$CMD" ]; then
+        track_build_result "$CMD" "$EXIT_CODE" "$CMD_OUTPUT"
+    fi
+fi
+
+# Track file operations (only for write operations)
 FILE_PATH=$(extract_file_path)
 TIMESTAMP=$(date -Iseconds)
 
-if [ -n "$FILE_PATH" ]; then
+# For Read operations, just track for handoffs but skip loop detection
+if [ "$TOOL_NAME" = "Read" ] || [ "$TOOL_NAME" = "read_file" ] || [ "$TOOL_NAME" = "view" ]; then
+    READ_PATH=$(echo "$TOOL_INPUT" | jq -r '.file_path // .path // .target_file // empty' 2>/dev/null)
+    if [ -n "$READ_PATH" ]; then
+        echo "$TIMESTAMP $TOOL_NAME $READ_PATH" >> "$TRACKING_FILE" 2>/dev/null || true
+    fi
+    # Don't apply loop detection to reads - reading files repeatedly is normal
+    exit 0
+fi
+
+if [ -n "$FILE_PATH" ] && is_write_operation; then
     # Record to tracking file (for handoffs)
-    echo "$TIMESTAMP $TOOL_NAME $FILE_PATH" >> "$TRACKING_FILE"
+    echo "$TIMESTAMP $TOOL_NAME $FILE_PATH" >> "$TRACKING_FILE" 2>/dev/null || true
     
-    # Record to loop detection file
-    echo "$TIMESTAMP|$TOOL_NAME|$FILE_PATH" >> "$LOOP_FILE"
+    # Record to loop detection file (only write operations)
+    echo "$TIMESTAMP|$TOOL_NAME|$FILE_PATH" >> "$LOOP_FILE" 2>/dev/null || true
     
-    # Count operations on this file
+    # ============================================
+    # PERIODIC LEDGER UPDATE (every 10 writes)
+    # ============================================
+    LEDGER_UPDATE_INTERVAL=10
+    TOTAL_WRITES=$(wc -l < "$TRACKING_FILE" 2>/dev/null | tr -d ' ' || echo "0")
+    if [ "$((TOTAL_WRITES % LEDGER_UPDATE_INTERVAL))" -eq 0 ] && [ "$TOTAL_WRITES" -gt 0 ]; then
+        PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname "$0")/..}"
+        LEDGER_SCRIPT="$PLUGIN_DIR/hooks/update-ledger.sh"
+        if [ -x "$LEDGER_SCRIPT" ]; then
+            "$LEDGER_SCRIPT" "periodic" "$SESSION_ID" "" "" "Auto-update after $TOTAL_WRITES file ops" 2>/dev/null || true
+        fi
+    fi
+    
+    # Count WRITE operations on this file
     FILE_OP_COUNT=$(count_recent_file_ops "$FILE_PATH")
     
     # Check for loop patterns
@@ -92,9 +283,9 @@ if [ -n "$FILE_PATH" ]; then
 🚨 LOOP DETECTED - STOPPING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 File: $FILE_PATH
-Operations in last $RECENT_WINDOW actions: $FILE_OP_COUNT
+Write operations in last $RECENT_WINDOW actions: $FILE_OP_COUNT
 
-You've operated on this file $FILE_OP_COUNT times recently.
+You've modified this file $FILE_OP_COUNT times recently.
 This indicates you may be stuck in a loop.
 
 REQUIRED ACTIONS:
@@ -116,10 +307,9 @@ If the error is environmental (imports, paths, dependencies):
 ⚠️ POTENTIAL LOOP WARNING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 File: $FILE_PATH
-Operations in last $RECENT_WINDOW actions: $FILE_OP_COUNT
+Write operations in last $RECENT_WINDOW actions: $FILE_OP_COUNT
 
-You've touched this file $FILE_OP_COUNT times. If you're repeatedly:
-- Reading then writing the same file
+You've modified this file $FILE_OP_COUNT times. If you're repeatedly:
 - Making similar edits that don't resolve the issue
 - Re-running the same failing command
 
@@ -131,13 +321,13 @@ STOP and try a different approach. Consider:
 "
     fi
     
-    # Also check for repetitive pattern (same exact operation)
+    # Also check for repetitive pattern
     if detect_loop_pattern "$FILE_PATH" "$TOOL_NAME"; then
         if [ -z "$LOOP_WARNING" ]; then
             LOOP_WARNING="
 ⚠️ REPETITIVE PATTERN DETECTED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Same operation ($TOOL_NAME) on same file ($FILE_PATH) repeated.
+Same write operation ($TOOL_NAME) on same file ($FILE_PATH) repeated.
 This suggests you're stuck. Try a different approach.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "
@@ -147,34 +337,16 @@ This suggests you're stuck. Try a different approach.
     # Output warning if detected
     if [ -n "$LOOP_WARNING" ]; then
         if [ "$SHOULD_BLOCK" = true ]; then
-            # Block the operation - exit 2 shows stderr to user
             echo "$LOOP_WARNING" >&2
             exit 2
         else
-            # Warning only - continue but inject context
             jq -n --arg warning "$LOOP_WARNING" '{
                 "continue": true,
-                "hookSpecificOutput": {
-                    "hookEventName": "PostToolUse",
-                    "additionalContext": $warning
-                }
+                "systemMessage": $warning
             }'
             exit 0
         fi
     fi
-fi
-
-# Index spec/eval files (unchanged)
-if echo "$FILE_PATH" | grep -qE 'specs/.*\.md$'; then
-    :
-fi
-
-if echo "$FILE_PATH" | grep -qE 'evals/.*\.py$'; then
-    :
-fi
-
-if echo "$FILE_PATH" | grep -qE 'thoughts/shared/handoffs/.*\.md$'; then
-    :
 fi
 
 # Normal exit - continue without output

@@ -38,7 +38,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|str_replace_editor|Bash|bash|Read|read_file|view",
+        "matcher": "Edit|Write|str_replace_editor|Bash|bash|MultiEdit",
         "hooks": [
           {
             "type": "command",
@@ -55,6 +55,28 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.sh",
             "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-end.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh",
+            "timeout": 10
           }
         ]
       }

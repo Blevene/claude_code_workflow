@@ -44,6 +44,25 @@ create_auto_handoff() {
         git_status=$(cd "$PROJECT_DIR" && git status --short 2>/dev/null | head -20 || true)
     fi
 
+    # Extract current phase and goal from ledger
+    local current_phase=""
+    local current_goal=""
+    local now_doing=""
+    local latest_ledger=$(ls -t "$LEDGER_DIR"/CONTINUITY_*.md 2>/dev/null | head -1)
+    if [ -f "$latest_ledger" ]; then
+        current_phase=$(grep -A1 "^## Current Phase" "$latest_ledger" 2>/dev/null | tail -1 | head -c 50 || echo "unknown")
+        current_goal=$(grep -A1 "^## Goal" "$latest_ledger" 2>/dev/null | tail -1 | head -c 100 || echo "")
+        now_doing=$(grep "^- Now:" "$latest_ledger" 2>/dev/null | head -1 | cut -d: -f2- | head -c 100 || echo "")
+    fi
+
+    # Get most recently modified files
+    local recent_modified=""
+    if [ -d "$PROJECT_DIR" ]; then
+        recent_modified=$(find "$PROJECT_DIR" \( -name "*.py" -o -name "*.md" -o -name "*.ts" -o -name "*.tsx" \) ! -name "._*" 2>/dev/null | \
+            xargs ls -t 2>/dev/null | head -5 | \
+            xargs -I{} basename {} 2>/dev/null | tr '\n' ', ' || echo "")
+    fi
+
     cat > "$handoff_file" << EOF
 ---
 type: auto-handoff
@@ -59,23 +78,30 @@ trigger: context-compaction
 ## Session: $SESSION_ID
 Generated: $(date)
 
+## Current State
+- **Phase:** $current_phase
+- **Goal:** $current_goal
+- **Was doing:** $now_doing
+
+## Next Steps
+
+1. **Review the ledger** at \`thoughts/ledgers/CONTINUITY_*.md\` for full context
+2. **Check git status** to see what was being worked on
+3. **Run evals** to verify current state: \`uv run python tools/run_evals.py --all\`
+4. **Continue from the "Now" section** of the ledger
+
 ## Recent File Activity
 \`\`\`
 $recent_files
 \`\`\`
 
+## Recently Modified
+$recent_modified
+
 ## Git Status
 \`\`\`
 $git_status
 \`\`\`
-
-## Recovery Instructions
-
-1. Review this handoff and the continuity ledger
-2. Check \`/status\` for workflow state
-3. Run evals to check status: \`uv run python tools/run_evals.py --all\`
-4. Use \`traceability_matrix.json\` to find gaps
-5. Continue from the last known good state
 
 ## Files to Check
 
@@ -83,7 +109,6 @@ $git_status
 - \`traceability_matrix.json\` - Requirement coverage
 - \`specs/\` - Behavioral specifications
 - \`evals/\` - Eval scripts
-- \`docs/design/\` - Design documents
 
 EOF
 
@@ -100,11 +125,26 @@ if [ -x "$LEDGER_SCRIPT" ]; then
     LEDGER_MSG="📋 Ledger updated: $LEDGER_FILE"
 fi
 
-# Output JSON response - allow compaction to proceed
-jq -n --arg handoff "$HANDOFF_FILE" --arg ledger "$LEDGER_MSG" '{
+# Output JSON response - allow compaction to proceed with system message
+MESSAGE="
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 CONTEXT COMPACTION - STATE SAVED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Auto-handoff created: $HANDOFF_FILE
+$LEDGER_MSG
+
+⚠️  AFTER COMPACTION:
+1. Context will be compressed - some details may be lost
+2. The ledger will auto-reload on your next message
+3. Review the handoff above if you need to recover context
+
+💡 TIP: Use /clear instead of letting context compact.
+   /save-state → /clear preserves full fidelity.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"
+
+jq -n --arg msg "$MESSAGE" '{
     "continue": true,
-    "hookSpecificOutput": {
-        "hookEventName": "PreCompact",
-        "additionalContext": ("📦 Auto-handoff created before compaction:\n" + $handoff + "\n" + $ledger + "\n\nContext will be refreshed. Ledger will reload on next prompt.")
-    }
+    "systemMessage": $msg
 }'

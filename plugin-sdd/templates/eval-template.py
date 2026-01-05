@@ -3,7 +3,17 @@ Eval Template for SPEC-XXX - REQ-XXX
 
 SDD Status: PENDING (awaiting implementation)
 
-Copy this template to: evals/{module}/eval_spec_xxx.py
+NAMING CONVENTION:
+  Copy this template to: evals/{module}/eval_{component_name}.py
+
+  Examples:
+    evals/auth/eval_login.py         (not eval_spec_001.py)
+    evals/auth/eval_password_reset.py
+    evals/users/eval_registration.py
+    evals/cart/eval_checkout.py
+
+  WHY: Unique names prevent pytest collection conflicts and make evals
+  easier to identify. The component name should match what's being tested.
 """
 from dataclasses import dataclass
 from typing import Any

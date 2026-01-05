@@ -14,8 +14,8 @@ Check ledger and handoffs:
 # Latest ledger
 ls -t thoughts/ledgers/CONTINUITY_*.md 2>/dev/null | head -1 || echo "No ledger found"
 
-# Latest handoff
-find thoughts/shared/handoffs -name "*.md" -type f 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || echo "No handoffs found"
+# Latest handoff (exclude macOS ._ files)
+find thoughts/shared/handoffs -name "*.md" -type f ! -name "._*" 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || echo "No handoffs found"
 
 # Active plan (check JSON first, then markdown)
 ls -t thoughts/shared/plans/*.json 2>/dev/null | head -1 || \

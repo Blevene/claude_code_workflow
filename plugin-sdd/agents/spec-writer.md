@@ -93,7 +93,17 @@ Create specs at `specs/{module}/SPEC-{id}.md`:
 
 ## Eval File Structure
 
-Create evals at `evals/{module}/eval_{spec_id}.py`.
+Create evals at `evals/{module}/eval_{component_name}.py`.
+
+**NAMING CONVENTION (CRITICAL):**
+```
+evals/auth/eval_login.py           ✅ Component name
+evals/auth/eval_password_reset.py  ✅ Component name
+evals/auth/eval_spec_001.py        ❌ Generic - causes pytest conflicts
+```
+
+**Why:** Unique names prevent pytest collection conflicts and make evals 
+easier to identify. The component name should match what's being tested.
 
 **Template:** Copy from `templates/eval-template.py`
 
@@ -116,15 +126,15 @@ Create `specs/{req_id}-spec-manifest.json`:
       "id": "SPEC-001",
       "description": "User login behavior",
       "type": "behavioral",
-      "spec_file": "specs/auth/SPEC-001.md",
-      "eval_file": "evals/auth/eval_spec_001.py"
+      "spec_file": "specs/auth/SPEC-001-login.md",
+      "eval_file": "evals/auth/eval_login.py"
     },
     {
       "id": "SPEC-002",
       "description": "Login error handling",
       "type": "error_handling",
-      "spec_file": "specs/auth/SPEC-002.md",
-      "eval_file": "evals/auth/eval_spec_002.py"
+      "spec_file": "specs/auth/SPEC-002-login-errors.md",
+      "eval_file": "evals/auth/eval_login_errors.py"
     }
   ],
   "eval_notes": "All evals must pass before PR approval"
@@ -139,11 +149,11 @@ Add specs and evals to `traceability_matrix.json`:
 {
   "id": "REQ-001",
   "specs": [
-    "specs/auth/SPEC-001.md",
+    "specs/auth/SPEC-001-login.md",
     "specs/REQ-001-spec-manifest.json"
   ],
   "evals": [
-    "evals/auth/eval_spec_001.py"
+    "evals/auth/eval_login.py"
   ]
 }
 ```
@@ -231,11 +241,14 @@ Specs should be written from requirements without knowledge of implementation. I
 Use the eval runner:
 ```bash
 uv run python tools/run_evals.py --spec SPEC-001
+uv run python tools/run_evals.py --module auth
+uv run python tools/run_evals.py --all
 ```
 
-Or run directly:
+Or run directly (use component name):
 ```bash
-uv run python evals/auth/eval_spec_001.py
+uv run python evals/auth/eval_login.py
+uv run python evals/auth/eval_password_reset.py
 ```
 
 ## Output Format
@@ -246,11 +259,12 @@ uv run python evals/auth/eval_spec_001.py
 **SDD Status:** PENDING (specs written, awaiting implementation)
 
 **Spec Files Created:**
-- specs/auth/SPEC-001.md
+- specs/auth/SPEC-001-login.md
 - specs/REQ-001-spec-manifest.json
 
 **Eval Files Created:**
-- evals/auth/eval_spec_001.py
+- evals/auth/eval_login.py (for SPEC-001)
+- evals/auth/eval_login_errors.py (for SPEC-002)
 
 **Specifications:**
 - SPEC-001: Valid login behavior (behavioral)
@@ -258,8 +272,8 @@ uv run python evals/auth/eval_spec_001.py
 - SPEC-003: Empty credentials handling (edge_case)
 
 **Traceability Update:**
-Add to REQ-001 specs: ["specs/auth/SPEC-001.md"]
-Add to REQ-001 evals: ["evals/auth/eval_spec_001.py"]
+Add to REQ-001 specs: ["specs/auth/SPEC-001-login.md"]
+Add to REQ-001 evals: ["evals/auth/eval_login.py"]
 
 **Next:** @backend implement src/auth/login.py to match these specs
 ```
@@ -300,9 +314,12 @@ You are STUCK if you've done any of these 3+ times:
 | Symptom | Likely Cause | Fix |
 |---------|--------------|-----|
 | `ModuleNotFoundError` | Missing `__init__.py` | Add `__init__.py` to package dirs |
-| pytest collection error | Duplicate file names | Use unique names: `eval_login.py`, `eval_register.py` |
-| Import collision | All files named same | Rename to match module: `eval_{module_name}.py` |
+| pytest collection error | Duplicate file names | Use unique component names: `eval_login.py`, `eval_register.py` |
+| Import collision | All files named `eval_spec_001.py` | Rename by component: `eval_{component_name}.py` |
 | Flaky tests | Non-deterministic behavior | Use fixtures, mock time/random |
+
+**NAMING RULE:** Never use generic names like `eval_spec_001.py`. Always use 
+component-specific names like `eval_login.py`, `eval_checkout.py`.
 
 ### Escalation Path
 

@@ -26,7 +26,7 @@ TIMESTAMP=$(date -Iseconds)
 
 # Count artifacts
 count_specs() {
-    find "$SPECS_DIR" -name "SPEC-*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    find "$SPECS_DIR" -name "SPEC-*.md" -type f ! -name "._*" 2>/dev/null | wc -l | tr -d ' '
 }
 
 count_evals() {
@@ -34,11 +34,11 @@ count_evals() {
 }
 
 count_designs() {
-    find "$DESIGN_DIR" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    find "$DESIGN_DIR" -name "*.md" -type f ! -name "._*" 2>/dev/null | wc -l | tr -d ' '
 }
 
 count_handoffs() {
-    find "$HANDOFF_DIR" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    find "$HANDOFF_DIR" -name "*.md" -type f ! -name "._*" 2>/dev/null | wc -l | tr -d ' '
 }
 
 # Get recent git changes

@@ -1,0 +1,243 @@
+{
+  "version": "1.0",
+  "description": "SDD workflow skill activation rules - matches prompts to relevant skills",
+  "skills": {
+    "sdd-workflow": {
+      "type": "guardrail",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "promptTriggers": {
+        "keywords": ["spec", "specification", "implement", "feature", "eval", "sdd"],
+        "intentPatterns": [
+          "add.*feature",
+          "create.*spec",
+          "write.*eval",
+          "implement.*requirement",
+          "build.*function"
+        ]
+      }
+    },
+    "api-design": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["api", "endpoint", "rest", "graphql", "route", "contract"],
+        "intentPatterns": [
+          "design.*api",
+          "create.*endpoint",
+          "api.*contract",
+          "rest.*interface"
+        ]
+      }
+    },
+    "database": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["database", "schema", "migration", "sql", "query", "model"],
+        "intentPatterns": [
+          "design.*schema",
+          "create.*migration",
+          "database.*model",
+          "add.*table"
+        ]
+      }
+    },
+    "security-review": {
+      "type": "guardrail",
+      "enforcement": "warn",
+      "priority": "critical",
+      "promptTriggers": {
+        "keywords": ["auth", "authentication", "authorization", "security", "password", "token", "jwt", "oauth"],
+        "intentPatterns": [
+          "implement.*auth",
+          "add.*login",
+          "secure.*endpoint",
+          "protect.*route"
+        ]
+      }
+    },
+    "code-review": {
+      "type": "guardrail",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "promptTriggers": {
+        "keywords": ["review", "refactor", "cleanup", "optimize", "improve"],
+        "intentPatterns": [
+          "review.*code",
+          "refactor.*function",
+          "clean.*up",
+          "improve.*performance"
+        ]
+      }
+    },
+    "debugging": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["bug", "error", "fix", "broken", "failing", "crash", "issue"],
+        "intentPatterns": [
+          "fix.*bug",
+          "debug.*issue",
+          "why.*failing",
+          "not.*working"
+        ]
+      }
+    },
+    "documentation": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "low",
+      "promptTriggers": {
+        "keywords": ["doc", "documentation", "readme", "comment", "jsdoc"],
+        "intentPatterns": [
+          "add.*documentation",
+          "write.*readme",
+          "document.*function"
+        ]
+      }
+    },
+    "git-workflow": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "promptTriggers": {
+        "keywords": ["commit", "branch", "merge", "git", "pr", "pull request"],
+        "intentPatterns": [
+          "create.*commit",
+          "make.*branch",
+          "prepare.*pr"
+        ]
+      }
+    },
+    "refactoring": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "promptTriggers": {
+        "keywords": ["refactor", "restructure", "reorganize", "extract", "abstract"],
+        "intentPatterns": [
+          "refactor.*code",
+          "extract.*function",
+          "reorganize.*structure"
+        ]
+      }
+    },
+    "recall-reasoning": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["last time", "before", "previously", "similar", "precedent", "past", "prior"],
+        "intentPatterns": [
+          "what.*did.*before",
+          "how.*did.*last",
+          "similar.*work",
+          "past.*approach",
+          "done.*this.*before"
+        ]
+      }
+    },
+    "validate-implementation": {
+      "type": "guardrail",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["validate", "check", "verify", "best practice", "current", "outdated", "deprecated"],
+        "intentPatterns": [
+          "validate.*plan",
+          "check.*approach",
+          "is.*current",
+          "best.*practice",
+          "before.*implement"
+        ]
+      }
+    },
+    "validate-hooks": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["hook", "SessionStart", "PostToolUse", "PreCompact", "not firing", "not triggering"],
+        "intentPatterns": [
+          "hook.*not.*work",
+          "hook.*not.*fire",
+          "debug.*hook",
+          "fix.*hook",
+          "why.*hook"
+        ]
+      }
+    }
+  },
+  "agents": {
+    "architect": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["architecture", "design", "system", "component", "structure"],
+        "intentPatterns": [
+          "design.*system",
+          "architect.*solution",
+          "plan.*structure"
+        ]
+      }
+    },
+    "spec-writer": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["spec", "specification", "behavior", "requirement"],
+        "intentPatterns": [
+          "write.*spec",
+          "define.*behavior",
+          "create.*specification"
+        ]
+      }
+    },
+    "frontend": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "promptTriggers": {
+        "keywords": ["ui", "frontend", "react", "component", "css", "tailwind", "page"],
+        "intentPatterns": [
+          "build.*component",
+          "create.*page",
+          "style.*element"
+        ]
+      }
+    },
+    "backend": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "promptTriggers": {
+        "keywords": ["backend", "server", "api", "database", "service"],
+        "intentPatterns": [
+          "implement.*service",
+          "create.*api",
+          "backend.*logic"
+        ]
+      }
+    },
+    "planner": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["plan", "sprint", "task", "breakdown", "estimate"],
+        "intentPatterns": [
+          "plan.*sprint",
+          "break.*down",
+          "create.*tasks"
+        ]
+      }
+    }
+  }
+}
+

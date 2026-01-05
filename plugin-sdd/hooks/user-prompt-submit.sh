@@ -1,29 +1,53 @@
 #!/bin/bash
-# UserPromptSubmit Hook - Context warnings and skill activation hints
+# UserPromptSubmit Hook - Context warnings, skill activation, SDD workflow hints
 # Triggered by: every user message
-set -e
+#
+# Features (inspired by Continuous-Claude-v2):
+# - Skill activation based on skill-rules.json patterns
+# - Context percentage warnings
+# - SDD workflow reminders
+
+# Don't use set -e - we want to handle errors gracefully
 
 # Read input from stdin
 INPUT=$(cat)
-USER_MESSAGE=$(echo "$INPUT" | jq -r '.prompt // .message // ""')
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
+USER_MESSAGE=$(echo "$INPUT" | jq -r '.prompt // .message // ""' 2>/dev/null)
+
+# Get session ID - use same fallback as status.sh to ensure file paths match
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""' 2>/dev/null)
+[[ -z "$SESSION_ID" || "$SESSION_ID" == "null" ]] && SESSION_ID="$PPID"
 
 # Paths
-# CLAUDE_PROJECT_DIR = user's project directory (for user files like ledgers)
-# CLAUDE_PLUGIN_ROOT = plugin installation directory (for plugin scripts)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$HOME/.claude}"
 CONTEXT_FILE="/tmp/claude-context-pct-$SESSION_ID.txt"
 
-# Read context percentage if available (written by status line)
+# Try to find skill-rules.json
+SKILL_RULES=""
+if [ -f "$PROJECT_DIR/.claude/skills/skill-rules.json" ]; then
+    SKILL_RULES="$PROJECT_DIR/.claude/skills/skill-rules.json"
+elif [ -f "$PLUGIN_DIR/skills/skill-rules.json" ]; then
+    SKILL_RULES="$PLUGIN_DIR/skills/skill-rules.json"
+elif [ -f "$HOME/.claude/skills/skill-rules.json" ]; then
+    SKILL_RULES="$HOME/.claude/skills/skill-rules.json"
+fi
+
+# Read context percentage if available
 CONTEXT_PCT=0
 if [ -f "$CONTEXT_FILE" ]; then
-    CONTEXT_PCT=$(cat "$CONTEXT_FILE" 2>/dev/null || echo "0")
+    CONTEXT_PCT=$(cat "$CONTEXT_FILE" 2>/dev/null | tr -d '[:space:]' || echo "0")
+    # Ensure it's a number
+    if ! [[ "$CONTEXT_PCT" =~ ^[0-9]+$ ]]; then
+        CONTEXT_PCT=0
+    fi
 fi
 
 # Build response
 HINTS=""
 
-# Context warnings based on usage
+# ============================================
+# CONTEXT WARNINGS
+# ============================================
 if [ "$CONTEXT_PCT" -ge 90 ]; then
     HINTS+="
 🚨 CONTEXT CRITICAL ($CONTEXT_PCT%)
@@ -43,33 +67,104 @@ elif [ "$CONTEXT_PCT" -ge 70 ]; then
 "
 fi
 
-# Skill activation hints based on keywords
-MESSAGE_LOWER=$(echo "$USER_MESSAGE" | tr '[:upper:]' '[:lower:]')
+# ============================================
+# SKILL ACTIVATION (from skill-rules.json)
+# ============================================
+if [ -n "$SKILL_RULES" ] && [ -f "$SKILL_RULES" ]; then
+    MESSAGE_LOWER=$(echo "$USER_MESSAGE" | tr '[:upper:]' '[:lower:]')
+    
+    MATCHED_SKILLS=""
+    MATCHED_AGENTS=""
+    
+    # Check skills
+    SKILL_NAMES=$(jq -r '.skills | keys[]' "$SKILL_RULES" 2>/dev/null)
+    for skill in $SKILL_NAMES; do
+        # Get keywords for this skill
+        KEYWORDS=$(jq -r ".skills[\"$skill\"].promptTriggers.keywords // [] | .[]" "$SKILL_RULES" 2>/dev/null)
+        PRIORITY=$(jq -r ".skills[\"$skill\"].priority // \"medium\"" "$SKILL_RULES" 2>/dev/null)
+        
+        for keyword in $KEYWORDS; do
+            keyword_lower=$(echo "$keyword" | tr '[:upper:]' '[:lower:]')
+            if echo "$MESSAGE_LOWER" | grep -q "$keyword_lower"; then
+                case "$PRIORITY" in
+                    critical) MATCHED_SKILLS+="⚠️ CRITICAL: $skill\n" ;;
+                    high)     MATCHED_SKILLS+="📚 RECOMMENDED: $skill\n" ;;
+                    medium)   MATCHED_SKILLS+="💡 SUGGESTED: $skill\n" ;;
+                    low)      MATCHED_SKILLS+="📌 OPTIONAL: $skill\n" ;;
+                esac
+                break
+            fi
+        done
+    done
+    
+    # Check agents
+    AGENT_NAMES=$(jq -r '.agents | keys[]' "$SKILL_RULES" 2>/dev/null)
+    for agent in $AGENT_NAMES; do
+        KEYWORDS=$(jq -r ".agents[\"$agent\"].promptTriggers.keywords // [] | .[]" "$SKILL_RULES" 2>/dev/null)
+        
+        for keyword in $KEYWORDS; do
+            keyword_lower=$(echo "$keyword" | tr '[:upper:]' '[:lower:]')
+            if echo "$MESSAGE_LOWER" | grep -q "$keyword_lower"; then
+                MATCHED_AGENTS+="🤖 @$agent\n"
+                break
+            fi
+        done
+    done
+    
+    # Output skill suggestions if found
+    if [ -n "$MATCHED_SKILLS" ] || [ -n "$MATCHED_AGENTS" ]; then
+        HINTS+="
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 SKILL ACTIVATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"
+        if [ -n "$MATCHED_SKILLS" ]; then
+            HINTS+="$(echo -e "$MATCHED_SKILLS")"
+        fi
+        if [ -n "$MATCHED_AGENTS" ]; then
+            HINTS+="
+Recommended agents (token-efficient):
+$(echo -e "$MATCHED_AGENTS")"
+        fi
+        HINTS+="
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"
+    fi
+fi
 
-# SDD workflow triggers
-if echo "$MESSAGE_LOWER" | grep -qE '(implement|add feature|fix bug|code)'; then
-    HINTS+="
+# ============================================
+# SDD WORKFLOW HINTS (fallback if no skill-rules)
+# ============================================
+if [ -z "$SKILL_RULES" ]; then
+    MESSAGE_LOWER=$(echo "$USER_MESSAGE" | tr '[:upper:]' '[:lower:]')
+    
+    if echo "$MESSAGE_LOWER" | grep -qE '(implement|add feature|fix bug|code)'; then
+        HINTS+="
 💡 SDD workflow: write specs FIRST, then implement, then run evals
 "
-fi
-
-if echo "$MESSAGE_LOWER" | grep -qE '(spec|specification|behavior)'; then
-    HINTS+="
+    fi
+    
+    if echo "$MESSAGE_LOWER" | grep -qE '(spec|specification|behavior)'; then
+        HINTS+="
 💡 Use /spec to create behavioral specification before implementation
 "
-fi
-
-if echo "$MESSAGE_LOWER" | grep -qE '(eval|validate|check)'; then
-    HINTS+="
+    fi
+    
+    if echo "$MESSAGE_LOWER" | grep -qE '(eval|validate|check)'; then
+        HINTS+="
 💡 Run evals with: uv run python tools/run_evals.py --all
 "
-fi
-
-if echo "$MESSAGE_LOWER" | grep -qE '(design|architect|api contract)'; then
-    HINTS+="
+    fi
+    
+    if echo "$MESSAGE_LOWER" | grep -qE '(design|architect|api contract)'; then
+        HINTS+="
 💡 Use /design to create architecture document before implementation
 "
+    fi
 fi
+
+# Session management hints (always check these)
+MESSAGE_LOWER=$(echo "$USER_MESSAGE" | tr '[:upper:]' '[:lower:]')
 
 if echo "$MESSAGE_LOWER" | grep -qE '(done|wrap up|end session|stopping)'; then
     HINTS+="
@@ -89,16 +184,14 @@ if echo "$MESSAGE_LOWER" | grep -qE '(before clear|save state|preserve)'; then
 "
 fi
 
-# Output response
+# ============================================
+# OUTPUT
+# ============================================
 if [ -n "$HINTS" ]; then
     jq -n --arg hints "$HINTS" '{
         "continue": true,
-        "hookSpecificOutput": {
-            "hookEventName": "UserPromptSubmit",
-            "additionalContext": $hints
-        }
+        "systemMessage": $hints
     }'
 else
-    # Exit code 0 with no output = success, continue normally
     exit 0
 fi

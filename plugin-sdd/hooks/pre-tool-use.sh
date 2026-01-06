@@ -22,7 +22,7 @@ SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || ex
 # Detect automated context
 IS_AUTOMATED="false"
 case "$PERMISSION_MODE" in
-    dontAsk|bypassPermissions)
+    bypassPermissions)
         IS_AUTOMATED="true"
         ;;
     *)

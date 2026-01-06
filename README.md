@@ -746,7 +746,7 @@ The PostToolUse hook detects when agents are stuck in repetitive patterns. **As 
 | Context | Loop Detection |
 |---------|----------------|
 | Interactive (permission_mode: default) | ❌ Off - human oversight |
-| Subagent (permission_mode: dontAsk) | ✅ On - automated protection |
+| Subagent (permission_mode: bypassPermissions) | ✅ On - automated protection |
 
 | Threshold | Action |
 |-----------|--------|
@@ -766,7 +766,7 @@ When agents detect they're stuck, they should escalate to `@orchestrator` with a
 
 ### Security Guardrails (v2.5.0+)
 
-All subagents run with `permissionMode: dontAsk` for efficiency. A **PreToolUse hook** enforces tiered security guardrails to protect against dangerous operations. Inspired by [danielmiessler/Personal_AI_Infrastructure](https://github.com/danielmiessler/Personal_AI_Infrastructure).
+All subagents run with `permissionMode: bypassPermissions` for efficiency. A **PreToolUse hook** enforces tiered security guardrails to protect against dangerous operations. Inspired by [danielmiessler/Personal_AI_Infrastructure](https://github.com/danielmiessler/Personal_AI_Infrastructure).
 
 | Tier | Category | Action | Examples |
 |------|----------|--------|----------|
@@ -1149,7 +1149,7 @@ echo '{"source":"clear"}' | plugin-sdd/hooks/session-start.sh
 ### v2.5.0 (January 2026)
 
 - **Subagent security guardrails**: New PreToolUse hook with tiered security (10 categories) blocks dangerous commands
-- **Subagent efficiency**: All 9 agents now use `permissionMode: dontAsk` for faster execution
+- **Subagent efficiency**: All 9 agents now use `permissionMode: bypassPermissions` for faster execution
 - **Loop detection scoping**: Loop detection now only runs for subagents, not interactive sessions
 - **New rules**: `agent-safety.md` (security documentation), `loop-prevention.md` (shared loop guidance)
 - **Security logging**: Blocked operations logged to `.claude/logs/security-events.log`

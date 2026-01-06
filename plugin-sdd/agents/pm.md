@@ -3,7 +3,7 @@ name: pm
 description: Product Manager - owns EARS requirements, user stories, priorities, and acceptance criteria. Use PROACTIVELY when defining what to build, clarifying requirements, or prioritizing work. MUST BE USED at project start.
 tools: Read, Write, Glob, Grep
 model: inherit
-permissionMode: dontAsk
+permissionMode: bypassPermissions
 ---
 
 # Product Manager Agent

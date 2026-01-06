@@ -4,7 +4,7 @@ globs: ["**/*"]
 
 # Agent Safety Guardrails
 
-Subagents run with `permissionMode: dontAsk` for efficiency. A PreToolUse hook enforces **tiered security**.
+Subagents run with `permissionMode: bypassPermissions` for efficiency. A PreToolUse hook enforces **tiered security**.
 
 Inspired by [danielmiessler/Personal_AI_Infrastructure](https://github.com/danielmiessler/Personal_AI_Infrastructure).
 

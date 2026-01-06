@@ -3,7 +3,7 @@ name: orchestrator
 description: Routes work between agents, prevents infinite loops, manages continuity. Use PROACTIVELY to coordinate multi-step work, resolve agent conflicts, or manage complex feature development. MUST BE USED for any multi-agent workflows.
 tools: Read, Write, Glob, Grep, Bash
 model: inherit
-permissionMode: dontAsk
+permissionMode: bypassPermissions
 ---
 
 # Orchestrator Agent

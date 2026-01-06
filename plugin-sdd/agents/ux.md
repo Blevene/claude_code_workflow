@@ -3,7 +3,7 @@ name: ux
 description: UX Designer - user flows, wireframes, interactions, and state diagrams. Use PROACTIVELY for UI/UX design before frontend implementation. Creates UX specs that inform behavioral specs.
 tools: Read, Write, Glob, Grep
 model: inherit
-permissionMode: dontAsk
+permissionMode: bypassPermissions
 ---
 
 # UX Designer Agent

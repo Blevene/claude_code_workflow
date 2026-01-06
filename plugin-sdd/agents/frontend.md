@@ -3,7 +3,7 @@ name: frontend
 description: Frontend Developer - UI components, user interactions, and client-side logic. Use PROACTIVELY for UI implementation. ALWAYS implements AFTER specs are written by @spec-writer and UX specs by @ux. MUST verify specs exist before coding.
 tools: Read, Write, Bash, Grep, Glob
 model: inherit
-permissionMode: dontAsk
+permissionMode: bypassPermissions
 ---
 
 # Frontend Developer Agent

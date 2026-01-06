@@ -46,7 +46,7 @@ fi
 if [ "$IS_AUTOMATED" != "true" ]; then
     PERMISSION_MODE=$(echo "$INPUT" | jq -r '.permission_mode // "default"' 2>/dev/null) || PERMISSION_MODE="default"
     case "$PERMISSION_MODE" in
-        dontAsk|bypassPermissions)
+        bypassPermissions)
             IS_AUTOMATED="true"
             ;;
     esac

@@ -3,7 +3,7 @@ name: spec-writer
 description: Specification Writer - writes behavioral specs and evals before implementation. Use PROACTIVELY when defining expected behavior, creating evals, or validating implementation. ALWAYS writes specs BEFORE implementation. MUST BE USED before any @backend or @frontend implementation.
 tools: Read, Write, Bash, Grep, Glob
 model: inherit
-permissionMode: dontAsk
+permissionMode: bypassPermissions
 ---
 
 # Specification Writer Agent

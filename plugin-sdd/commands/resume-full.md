@@ -62,12 +62,14 @@ ls -t thoughts/shared/plans/*.json thoughts/shared/plans/*.md 2>/dev/null | grep
 git status
 ```
 
+If eval tools exist in this project:
 ```bash
-uv run python tools/run_evals.py --all 2>/dev/null || echo "Evals not configured"
+test -f tools/run_evals.py && uv run python tools/run_evals.py --all 2>/dev/null || echo "No evals configured"
 ```
 
+If traceability tools exist:
 ```bash
-uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null || true
+test -f tools/traceability_tools.py && uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null || echo "No traceability configured"
 ```
 
 ### 5. Present Full Context

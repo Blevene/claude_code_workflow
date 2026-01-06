@@ -6,7 +6,7 @@ description: Brownfield repository onboarding - AUTO-TRIGGERS when user mentions
 # Brownfield Onboarding Skill
 
 > **This skill auto-triggers** when adopting SDD in an existing codebase.
-> For greenfield projects, use `/init` directly.
+> For greenfield projects, use `/sdd-init` directly.
 
 ## When This Auto-Triggers
 
@@ -30,8 +30,8 @@ description: Brownfield repository onboarding - AUTO-TRIGGERS when user mentions
 ### Phase 1: Initialize Structure (Non-Destructive)
 
 ```bash
-# Run /init - creates SDD directories without touching existing code
-/init
+# Run /sdd-init - creates SDD directories without touching existing code
+/sdd-init
 
 # This creates:
 # - specs/           (empty, ready for specs)
@@ -166,7 +166,7 @@ If you want to convert existing pytest tests:
 
 ```bash
 # Initialize (safe for existing repos)
-/init
+/sdd-init
 
 # Check what's missing
 /check
@@ -228,7 +228,7 @@ Action:   1. Retrofit specs for tested code
 1. **Don't delete existing tests** - Keep them until evals are proven stable
 2. **Don't retrofit everything at once** - Prioritize by risk
 3. **Don't change behavior while retrofitting** - Document AS-IS first
-4. **Don't skip /init** - Even for existing repos
+4. **Don't skip /sdd-init** - Even for existing repos
 
 ## Output Format
 
@@ -245,14 +245,14 @@ After onboarding assessment:
 - Test coverage: Z%
 
 ## Recommended Approach
-1. Run /init (non-destructive)
+1. Run /sdd-init (non-destructive)
 2. Retrofit these critical modules first:
    - auth/ (high risk, has tests)
    - payments/ (high risk, partial tests)
 3. Apply full SDD to new features
 
 ## Next Steps
-- /init
+- /sdd-init
 - Create SPEC-001 for auth module
 - Run /check to verify setup
 

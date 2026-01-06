@@ -19,14 +19,17 @@ description: Resume work from the latest handoff - loads context and continues
 
 3. **Check Current State**
    ```bash
-   # Git status
    git status --short
+   ```
 
-   # Run evals (always use uv run)
-   uv run python tools/run_evals.py --all 2>/dev/null || echo "Evals need attention"
+   If project has eval tools:
+   ```bash
+   test -f tools/run_evals.py && uv run python tools/run_evals.py --all 2>/dev/null
+   ```
 
-   # Check traceability gaps
-   uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null || true
+   If project has traceability tools:
+   ```bash
+   test -f tools/traceability_tools.py && uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null
    ```
 
 4. **Verify Files Still Exist**

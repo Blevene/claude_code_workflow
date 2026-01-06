@@ -100,6 +100,55 @@ SAME_FILE_WARN=5      # Warn after 5 writes to same file (was 3)
 SAME_FILE_BLOCK=8     # Block after 8 writes (was 5)
 RECENT_WINDOW=15      # Shorter window = less accumulation (was 20)
 
+# ============================================
+# CONTENT DEDUPLICATION (prevents wasteful duplicate writes)
+# ============================================
+# Tracks file content hashes to detect when same content is written multiple times
+CONTENT_HASH_FILE="$CACHE_DIR/session-$SESSION_ID-content-hashes.txt"
+DUPLICATE_WINDOW_SECS=30  # If same content written within 30s, warn
+
+check_duplicate_write() {
+    local file_path="$1"
+    local content="$2"
+    
+    # Skip if no file path or content
+    [ -z "$file_path" ] && return 1
+    [ -z "$content" ] && return 1
+    
+    # Generate content hash
+    local content_hash=$(echo "$content" | md5sum 2>/dev/null | cut -c1-32) || return 1
+    local key="$file_path:$content_hash"
+    local now=$(date +%s)
+    
+    # Check if we've seen this exact content for this file recently
+    if [ -f "$CONTENT_HASH_FILE" ]; then
+        local last_entry=$(grep "^$file_path:" "$CONTENT_HASH_FILE" 2>/dev/null | tail -1)
+        if [ -n "$last_entry" ]; then
+            local last_hash=$(echo "$last_entry" | cut -d: -f2)
+            local last_time=$(echo "$last_entry" | cut -d: -f3)
+            
+            if [ "$last_hash" = "$content_hash" ]; then
+                local elapsed=$((now - last_time))
+                if [ "$elapsed" -lt "$DUPLICATE_WINDOW_SECS" ]; then
+                    # Duplicate write detected!
+                    return 0
+                fi
+            fi
+        fi
+    fi
+    
+    # Record this write
+    echo "$file_path:$content_hash:$now" >> "$CONTENT_HASH_FILE"
+    
+    # Prune old entries (keep last 100)
+    if [ -f "$CONTENT_HASH_FILE" ]; then
+        tail -100 "$CONTENT_HASH_FILE" > "$CONTENT_HASH_FILE.tmp" 2>/dev/null && \
+        mv "$CONTENT_HASH_FILE.tmp" "$CONTENT_HASH_FILE" 2>/dev/null || true
+    fi
+    
+    return 1
+}
+
 # Files excluded from loop detection (legitimate high-churn workflow files)
 is_excluded_from_loop_detection() {
     local file="$1"
@@ -358,6 +407,37 @@ if [ -n "$FILE_PATH" ] && is_write_operation; then
     # Loop detection only runs for automated/subagent contexts
     # Interactive sessions have human oversight
     if [ "$IS_AUTOMATED" != "true" ]; then
+        exit 0
+    fi
+    
+    # ============================================
+    # DUPLICATE CONTENT DETECTION
+    # ============================================
+    # Check if same content is being written to same file (indicates agent doesn't know write succeeded)
+    WRITE_CONTENT=""
+    case "$TOOL_NAME" in
+        Write|str_replace_editor)
+            WRITE_CONTENT=$(echo "$TOOL_INPUT" | jq -r '.content // .new_string // empty' 2>/dev/null | head -c 50000)
+            ;;
+        Edit)
+            WRITE_CONTENT=$(echo "$TOOL_INPUT" | jq -r '.new_string // empty' 2>/dev/null | head -c 50000)
+            ;;
+    esac
+    
+    if [ -n "$WRITE_CONTENT" ] && check_duplicate_write "$FILE_PATH" "$WRITE_CONTENT"; then
+        DUPE_WARNING="
+⚠️ DUPLICATE WRITE DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+File: $FILE_PATH
+
+You just wrote IDENTICAL content to this file within the last 30 seconds.
+This suggests your previous write may have succeeded but you didn't notice.
+
+CHECK: Did the file already contain this content? If so, no need to rewrite.
+VERIFY: Run 'cat $FILE_PATH | head -20' to confirm the content is there.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"
+        printf '{"continue":true,"systemMessage":"%s"}\n' "$(echo "$DUPE_WARNING" | tr '\n' ' ' | sed 's/\\/\\\\/g; s/"/\\"/g')"
         exit 0
     fi
     

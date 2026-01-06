@@ -79,7 +79,7 @@ uv run python tools/spec_linter.py --help 2>/dev/null && echo "✓ spec_linter.p
 
 [Or list what's missing and how to fix]
 
-To initialize missing components: /init
+To initialize missing components: /sdd-init
 ```
 
 $ARGUMENTS

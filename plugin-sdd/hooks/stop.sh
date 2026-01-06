@@ -147,7 +147,7 @@ if [ "$HAS_LEDGER" = "false" ] && [ "$FILES_MODIFIED" -ge 3 ]; then
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 You've modified $FILES_MODIFIED files but have no ledger.
 
-Run /init to set up continuity tracking for this project.
+Run /sdd-init to set up continuity tracking for this project.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "
 fi

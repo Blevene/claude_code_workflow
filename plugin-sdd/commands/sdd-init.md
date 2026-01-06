@@ -1,8 +1,8 @@
 ---
-description: Initialize project for Spec-Driven Development workflow - creates directories, venv, and config files
+description: Initialize project for Spec-Driven Development workflow - creates directories, tools, venv, and config files
 ---
 
-# Initialize Project
+# /sdd-init - Initialize SDD Project
 
 Set up the current directory for the Spec-Driven Development workflow.
 
@@ -17,6 +17,7 @@ Set up the current directory for the Spec-Driven Development workflow.
 | `.design/` | UX specifications |
 | `specs/` | Behavioral specifications |
 | `evals/` | Eval scripts for validation |
+| `tools/` | SDD utility scripts |
 | `traceability_matrix.json` | Requirement tracking |
 | `.venv/` | Python virtual environment |
 | `pyproject.toml` | Python project config |
@@ -34,6 +35,7 @@ mkdir -p docs/design
 mkdir -p .design
 mkdir -p specs
 mkdir -p evals
+mkdir -p tools
 mkdir -p src tests
 ```
 
@@ -88,7 +90,27 @@ EOF
 
 Update `PROJECT_NAME` and `TIMESTAMP` with actual values.
 
-### 4. Update .gitignore
+### 4. Install SDD Tools (Optional)
+
+Copy utility scripts from plugin. Try global install first, then plugin directory:
+
+```bash
+test -d ~/.claude/tools && cp ~/.claude/tools/*.py tools/ 2>/dev/null || echo "Tools not found in ~/.claude/tools"
+```
+
+Or if using plugin directory:
+```bash
+test -d plugin-sdd/tools && cp plugin-sdd/tools/*.py tools/ 2>/dev/null || echo "Plugin tools not found"
+```
+
+**Tools installed:**
+- `run_evals.py` - Execute all eval scripts
+- `traceability_tools.py` - Manage traceability matrix
+- `planner_tools.py` - Validate plan JSON files
+- `artifact_index.py` - Index handoffs/specs for recall
+- `artifact_query.py` - Search past work
+
+### 5. Update .gitignore
 
 Add Python and workflow patterns:
 ```
@@ -114,6 +136,7 @@ Created:
   ✓ .design/                  - For UX specs
   ✓ specs/                    - For behavioral specs
   ✓ evals/                    - For eval scripts
+  ✓ tools/                    - SDD utility scripts
   ✓ .venv/                    - Python virtual environment
   ✓ pyproject.toml            - Python config
   ✓ traceability_matrix.json  - Requirement tracking

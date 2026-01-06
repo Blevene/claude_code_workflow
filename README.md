@@ -216,7 +216,7 @@ Type `/help` - you should see commands under the `claude-code-workflow` namespac
 **5. Initialize a project:**
 
 ```bash
-/init
+/sdd-init
 ```
 
 ---
@@ -247,7 +247,7 @@ Test-Driven Development: Write tests BEFORE implementation.
 |-----------|-------|---------|
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@qa**, @overseer |
 | **Skills** | 9 | faang-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database |
-| **Commands** | 13 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/tdd**, /pre-review, /save-state, /handoff, /resume, /status, /test |
+| **Commands** | 13 | **/sdd-init**, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/tdd**, /pre-review, /save-state, /handoff, /resume, /status, /test |
 | **Hooks** | 5 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop |
 
 ### Workflow
@@ -338,7 +338,7 @@ Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
 |-----------|-------|---------|
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@spec-writer**, @overseer |
 | **Skills** | 14 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database, onboarding, recall-reasoning, validate-implementation, validate-hooks, **parallel-agents** |
-| **Commands** | 19 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, /spec, /implement, /eval, /debug, /pre-review, /save-state, /handoff, /resume, **/resume-full**, /status, /check, /commit, /describe-pr |
+| **Commands** | 19 | **/sdd-init**, /prd, /design, /review-design, /plan-sprint, /ux-spec, /spec, /implement, /eval, /debug, /pre-review, /save-state, /handoff, /resume, **/resume-full**, /status, /check, /commit, /describe-pr |
 | **Hooks** | 8 | **PreToolUse** (security), SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop, SessionEnd, Stop |
 | **Rules** | 6 | continuity, agent-orchestration, observe-before-editing, idempotent-operations, **agent-safety**, **loop-prevention** |
 | **Schemas** | 4 | traceability_matrix, planner_task, spec_schema, eval_result_schema |

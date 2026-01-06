@@ -185,7 +185,7 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 
 ```bash
 # Initialize project
-/init
+/sdd-init
 
 # Verify plugin health
 /check

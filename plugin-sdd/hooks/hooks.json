@@ -1,6 +1,18 @@
 {
   "description": "SDD workflow lifecycle hooks for continuity management",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|bash|Write|Edit|str_replace_editor",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",

@@ -30,6 +30,28 @@ TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // "{}"' 2>/dev/null) || exit 0
 TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response // "{}"' 2>/dev/null) || exit 0
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null) || exit 0
 
+# Detect if we're in an automated/subagent context
+# Loop detection only applies to automated contexts (subagents, background tasks)
+# Interactive sessions have human oversight and don't need automated loop prevention
+IS_AUTOMATED="false"
+
+# Signal 1: Explicit env var (set by our workflow when spawning agents)
+if [ "${CLAUDE_IS_SUBAGENT:-}" = "true" ] || [ "${CLAUDE_IS_SUBAGENT:-}" = "1" ]; then
+    IS_AUTOMATED="true"
+fi
+
+# Signal 2: Permission mode from hook input
+# dontAsk/bypassPermissions = automated execution without user prompts
+# Our subagent configs should use these modes
+if [ "$IS_AUTOMATED" != "true" ]; then
+    PERMISSION_MODE=$(echo "$INPUT" | jq -r '.permission_mode // "default"' 2>/dev/null) || PERMISSION_MODE="default"
+    case "$PERMISSION_MODE" in
+        dontAsk|bypassPermissions)
+            IS_AUTOMATED="true"
+            ;;
+    esac
+fi
+
 # Bail if we couldn't parse
 [ -z "$TOOL_NAME" ] && exit 0
 
@@ -333,7 +355,13 @@ if [ -n "$FILE_PATH" ] && is_write_operation; then
         exit 0
     fi
     
-    # Count WRITE operations on this file
+    # Loop detection only runs for automated/subagent contexts
+    # Interactive sessions have human oversight
+    if [ "$IS_AUTOMATED" != "true" ]; then
+        exit 0
+    fi
+    
+    # Count WRITE operations on this file (automated context only)
     FILE_OP_COUNT=$(count_recent_file_ops "$FILE_PATH")
     
     # Check for loop patterns

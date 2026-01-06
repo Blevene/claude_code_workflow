@@ -3,6 +3,7 @@ name: overseer
 description: Governance, drift detection, and risk assessment. Use PROACTIVELY for design reviews, pre-release checks, alignment verification, or when assessing risk levels. MUST BE USED before PRs and after design completion.
 tools: Read, Write, Glob, Grep, Bash
 model: inherit
+permissionMode: dontAsk
 ---
 
 # Overseer Agent - Governance & Risk

@@ -3,6 +3,7 @@ name: backend
 description: Backend Developer - APIs, data processing, integrations. Use PROACTIVELY for server-side implementation. ALWAYS implements AFTER specs are written by @spec-writer. MUST verify specs exist before coding.
 tools: Read, Write, Bash, Grep, Glob
 model: inherit
+permissionMode: dontAsk
 ---
 
 # Backend Developer Agent

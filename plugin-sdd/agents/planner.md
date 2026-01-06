@@ -3,6 +3,7 @@ name: planner
 description: Decomposes work into tasks, maintains plan JSON, tracks dependencies. Use PROACTIVELY for sprint planning, task breakdown, or work coordination. MUST BE USED after design review.
 tools: Read, Write, Glob, Grep, Bash
 model: inherit
+permissionMode: dontAsk
 ---
 
 # Planner Agent

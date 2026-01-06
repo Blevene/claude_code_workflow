@@ -330,7 +330,7 @@ Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@spec-writer**, @overseer |
 | **Skills** | 14 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database, onboarding, recall-reasoning, validate-implementation, validate-hooks, **parallel-agents** |
 | **Commands** | 19 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, /spec, /implement, /eval, /debug, /pre-review, /save-state, /handoff, /resume, **/resume-full**, /status, /check, /commit, /describe-pr |
-| **Hooks** | 7 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop, SessionEnd, Stop |
+| **Hooks** | 8 | **PreToolUse** (security), SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop, SessionEnd, Stop |
 | **Rules** | 4 | continuity, agent-orchestration, observe-before-editing, idempotent-operations |
 | **Schemas** | 4 | traceability_matrix, planner_task, spec_schema, eval_result_schema |
 | **Scripts** | 5 | init-project.sh, status.sh, **generate-reasoning.sh**, **aggregate-reasoning.sh**, **search-reasoning.sh** |

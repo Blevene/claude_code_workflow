@@ -284,7 +284,7 @@ Report to @orchestrator:
 If context is above 70%, suggest:
 ```
 ⚠️ Context at [X]%. Recommend completing current component
-(all states), running tests, then /save-state and /clear.
+(all states), running tests, then /clear (ledger auto-saved).
 ```
 
 ### If UI Work Spans Multiple Sessions

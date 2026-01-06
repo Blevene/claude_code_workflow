@@ -79,8 +79,8 @@ REQ-001 (requirement)
 ### 3. Clear, Don't Compact
 
 ```
-/save-state    # Updates ledger
-/clear         # Fresh context
+/handoff       # Create detailed handoff (optional)
+/clear         # Fresh context (ledger auto-updated by hooks)
                # SessionStart hook loads ledger + handoff automatically
 ```
 
@@ -247,7 +247,7 @@ Test-Driven Development: Write tests BEFORE implementation.
 |-----------|-------|---------|
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@qa**, @overseer |
 | **Skills** | 9 | faang-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database |
-| **Commands** | 13 | **/sdd-init**, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/tdd**, /pre-review, /save-state, /handoff, /resume, /status, /test |
+| **Commands** | 12 | **/sdd-init**, /prd, /design, /review-design, /plan-sprint, /ux-spec, **/tdd**, /pre-review, /handoff, /resume, /status, /test |
 | **Hooks** | 5 | SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop |
 
 ### Workflow
@@ -338,7 +338,7 @@ Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
 |-----------|-------|---------|
 | **Agents** | 9 | @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, **@spec-writer**, @overseer |
 | **Skills** | 14 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database, onboarding, recall-reasoning, validate-implementation, validate-hooks, **parallel-agents** |
-| **Commands** | 19 | **/sdd-init**, /prd, /design, /review-design, /plan-sprint, /ux-spec, /spec, /implement, /eval, /debug, /pre-review, /save-state, /handoff, /resume, **/resume-full**, /status, /check, /commit, /describe-pr |
+| **Commands** | 18 | **/sdd-init**, /prd, /design, /review-design, /plan-sprint, /ux-spec, /spec, /implement, /eval, /debug, /pre-review, /handoff, /resume, **/resume-full**, /status, /check, /commit, /describe-pr |
 | **Hooks** | 8 | **PreToolUse** (security), SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop, SessionEnd, Stop |
 | **Rules** | 6 | continuity, agent-orchestration, observe-before-editing, idempotent-operations, **agent-safety**, **loop-prevention** |
 | **Schemas** | 4 | traceability_matrix, planner_task, spec_schema, eval_result_schema |
@@ -546,7 +546,7 @@ The SDD plugin uses two trigger mechanisms:
 - PRD processing and design document creation
 - Spec-to-implementation cycles
 - Multi-agent handoffs between phases
-- Session continuity (`/save-state`, `/handoff`, `/resume`)
+- Session continuity (`/handoff`, `/resume`, auto-ledger hooks)
 
 **debugging skill auto-triggers for:**
 - Discussion of bugs or unexpected behavior
@@ -636,7 +636,7 @@ The SDD plugin uses two trigger mechanisms:
 │  │ PRD processing  │    │ Bug discussion  │    │ PR review       │         │
 │  │ Spec cycles     │    │ Error mentions  │    │ Code quality    │         │
 │  │ Agent handoffs  │    │ Troubleshooting │    │ Best practices  │         │
-│  │ /save-state     │    │                 │    │                 │         │
+│  │ /handoff        │    │                 │    │                 │         │
 │  └─────────────────┘    └─────────────────┘    └─────────────────┘         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -687,7 +687,7 @@ requirements/     docs/design/      specs/           src/              evals/
 ### How It Works
 
 ```
-Work → Context fills → /save-state → /clear → Ledger auto-loads → Continue
+Work → Context fills → /clear → Ledger auto-loads → Continue
 ```
 
 ### Auto-Ledger Updates (v2.2.0+)
@@ -700,7 +700,7 @@ The continuity ledger is now **automatically updated** alongside handoffs:
 | **Context compaction** | Auto-handoff created + ledger updated |
 | **`/handoff` command** | Session handoff created + ledger updated |
 
-This ensures the ledger stays current without requiring explicit `/save-state` calls. The ledger provides a compact, cumulative state for quick context reload, while handoffs provide detailed snapshots for deep recovery.
+This ensures the ledger stays current automatically. The ledger provides a compact, cumulative state for quick context reload, while handoffs provide detailed snapshots for deep recovery.
 
 ### Context Monitoring (v2.3.0+)
 
@@ -724,7 +724,7 @@ The status line writes context percentage to `/tmp/claude-context-pct-$SESSION_I
 |-------|-------------------|--------|
 | **< 60%** | 🟢 Green | Normal work |
 | **60-80%** | 🟡 Yellow | Plan handoff points |
-| **≥ 80%** | 🔴 Red + ⚠ | **STOP** - `/save-state` then `/clear` NOW |
+| **≥ 80%** | 🔴 Red + ⚠ | **STOP** - `/clear` NOW (ledger auto-saved) |
 
 ### Hooks
 
@@ -737,7 +737,7 @@ The status line writes context percentage to `/tmp/claude-context-pct-$SESSION_I
 | **PostToolUse** | After file edits/reads | Tracks modified files, **loop detection** (subagents only), **build/test tracking** |
 | **SubagentStop** | Agent completes | Creates task handoff + ledger update |
 | **SessionEnd** | Session completes | Cleanup old cache files (>7 days), remove stale handoffs (>30 days), update ledger |
-| **Stop** | Main agent finishes | Session summary (files modified, test results), prompts for handoff/save-state |
+| **Stop** | Main agent finishes | Session summary (files modified, test results), prompts for handoff |
 
 ### Loop Detection (v2.2.0+, updated v2.5.0)
 

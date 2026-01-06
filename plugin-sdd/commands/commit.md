@@ -134,7 +134,6 @@ Build passed after **2 failed attempt(s)** and 1 successful build(s).
 ## Related Commands
 
 - `/describe-pr` - Generate PR description with reasoning from all commits
-- `/save-state` - Save current session state to ledger
 - `/handoff` - Create detailed session handoff
 
 ## Searching Past Reasoning

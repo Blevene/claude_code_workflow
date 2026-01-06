@@ -112,7 +112,7 @@ git status --short
 
 ## Continuity Recommendation
 
-[Based on context %, suggest /save-state + /clear if needed]
+[Based on context %, suggest /clear if needed - ledger auto-saved]
 ```
 
 $ARGUMENTS

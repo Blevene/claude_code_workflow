@@ -220,5 +220,5 @@ Report to @orchestrator:
 If context is above 70%, suggest:
 ```
 ⚠️ Context at [X]%. Recommend completing current component,
-running evals to verify, then /save-state and /clear before continuing.
+running evals to verify, then /clear before continuing (ledger auto-saved).
 ```

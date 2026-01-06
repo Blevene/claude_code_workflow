@@ -164,7 +164,7 @@ Report to @orchestrator:
 If context is above 70%:
 ```
 ⚠️ Context at [X]%. Recommend completing current plan,
-saving to thoughts/shared/plans/, then /save-state and /clear.
+saving to thoughts/shared/plans/, then /clear (ledger auto-saved).
 ```
 
 ### Plan Location

@@ -28,14 +28,14 @@ if [ "$CONTEXT_PCT" -ge 90 ]; then
     HINTS+="
 🚨 CONTEXT CRITICAL ($CONTEXT_PCT%)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Run /save-state then /clear NOW!
+Run /clear NOW! (Ledger auto-saved)
 Compaction is imminent and will degrade agent quality.
 "
 elif [ "$CONTEXT_PCT" -ge 80 ]; then
     HINTS+="
 ⚠️ CONTEXT WARNING ($CONTEXT_PCT%)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Recommend: /save-state then /clear soon.
+Recommend: /clear soon (ledger auto-saved).
 "
 elif [ "$CONTEXT_PCT" -ge 70 ]; then
     HINTS+="
@@ -73,7 +73,7 @@ fi
 
 if echo "$MESSAGE_LOWER" | grep -qE '(before clear|save state|preserve)'; then
     HINTS+="
-💡 Use /save-state to update continuity ledger
+💡 Ledger auto-updated. Use /handoff for detailed session docs.
 "
 fi
 

@@ -35,7 +35,7 @@ mkdir -p "$LEDGER_DIR"
 if [ "$TRIGGER" = "manual" ]; then
     # Re-enable stderr for blocking message
     exec 2>&1
-    echo "⚠️ Manual compaction blocked. Please run /save-state first to update the continuity ledger, then use /clear instead of compact. This preserves full context fidelity."
+    echo "⚠️ Manual compaction blocked. Please use /clear instead of compact. Ledger is auto-updated by hooks. This preserves full context fidelity."
     exit 2
 fi
 
@@ -151,7 +151,7 @@ $LEDGER_MSG
 3. Review the handoff above if you need to recover context
 
 💡 TIP: Use /clear instead of letting context compact.
-   /save-state → /clear preserves full fidelity.
+   Ledger auto-updated → /clear preserves full fidelity.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "
 

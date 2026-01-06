@@ -177,7 +177,7 @@ Report to @orchestrator:
 If context is above 70%:
 ```
 ⚠️ Context at [X]%. Recommend completing current design section,
-saving document, updating traceability, then /save-state and /clear.
+saving document, updating traceability, then /clear (ledger auto-saved).
 ```
 
 ### If Design Spans Multiple Sessions

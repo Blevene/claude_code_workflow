@@ -237,5 +237,5 @@ Report to @orchestrator:
 If context is above 70%:
 ```
 ⚠️ Context at [X]%. Recommend completing current UX spec,
-then /save-state and /clear before continuing.
+then /clear before continuing (ledger auto-saved).
 ```

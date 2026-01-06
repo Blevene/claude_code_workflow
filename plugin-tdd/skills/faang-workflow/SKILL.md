@@ -63,21 +63,21 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 |-------|--------|
 | **< 60%** | Normal work |
 | **60-70%** | Plan handoff points |
-| **70-80%** | Complete task, /save-state, /clear soon |
-| **> 80%** | STOP - /save-state then /clear NOW |
+| **70-80%** | Complete task, /clear soon |
+| **> 80%** | STOP - /clear NOW (ledger auto-saved) |
 
 ### Continuity Commands
 
 | Command | When |
 |---------|------|
-| `/save-state` | Before /clear - updates ledger |
 | `/handoff` | End of session - detailed transfer doc |
+| `/clear` | Fresh context (ledger auto-updated by hooks) |
 | `/resume` | Start of session - load handoff |
 
 ### The Continuity Loop
 
 ```
-Work → Context fills → /save-state → /clear → Ledger auto-loads → Continue
+Work → Context fills → /clear → Ledger auto-loads → Continue
 ```
 
 ### Key Files
@@ -97,7 +97,7 @@ Work → Context fills → /save-state → /clear → Ledger auto-loads → Cont
 2. **Tests before implementation** - @qa writes first
 3. **Traceability** - Everything links to REQ-* IDs
 4. **Loop prevention** - Escalate after 2-3 bounces
-5. **Context management** - /save-state before /clear
+5. **Context management** - /clear when needed (ledger auto-saved)
 6. **Python environment** - Always use `uv run` for Python/pytest
 
 ## Python Environment (CRITICAL)
@@ -139,8 +139,7 @@ uv venv && uv sync
 uv run pytest tests/ -v
 
 # Before context fills (70%+)
-/save-state
-/clear
+/clear  # Ledger auto-saved by hooks
 
 # Pre-PR check
 /pre-review

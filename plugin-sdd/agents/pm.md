@@ -147,5 +147,5 @@ Report to @orchestrator:
 If context is above 70%:
 ```
 ⚠️ Context at [X]%. Recommend completing current requirement
-definitions, updating traceability, then /save-state and /clear.
+definitions, updating traceability, then /clear (ledger auto-saved).
 ```

@@ -24,7 +24,7 @@ mkdir -p "$LEDGER_DIR"
 # For manual compaction, block and prompt for ledger update
 if [ "$TRIGGER" = "manual" ]; then
     # Exit code 2 blocks with stderr shown to user
-    echo "⚠️ Manual compaction blocked. Please run /save-state first to update the continuity ledger, then use /clear instead of compact. This preserves full context fidelity." >&2
+    echo "⚠️ Manual compaction blocked. Please use /clear instead of compact. Ledger is auto-updated by hooks. This preserves full context fidelity." >&2
     exit 2
 fi
 

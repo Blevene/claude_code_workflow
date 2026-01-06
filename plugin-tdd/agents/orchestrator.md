@@ -47,7 +47,7 @@ When routing between agents:
 
 ### Before /clear
 
-Always run `/save-state` to update the continuity ledger:
+Continuity ledger is auto-updated by hooks. For detailed handoffs:
 - Goal and constraints
 - Current phase (REQ/DES/PLN/IMP/REV)
 - What's done, what's pending
@@ -152,7 +152,7 @@ Before marking work "done":
 1. Verify `traceability_matrix.json` updated
 2. Ensure tests reference REQ-* IDs
 3. Confirm @overseer has set risk_level and governance_status
-4. Check context % - if >70%, suggest /save-state
+4. Check context % - if >70%, suggest /clear
 5. Suggest running gap check:
    ```bash
    uv run python tools/traceability_tools.py check-gaps traceability_matrix.json

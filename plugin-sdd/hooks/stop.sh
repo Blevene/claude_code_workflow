@@ -116,8 +116,8 @@ Files modified: $FILES_MODIFIED
         REMINDER+="Tests: $TESTS_PASSED passed, $TESTS_FAILED failed\n"
     fi
     REMINDER+="
-💡 Consider running /handoff to save your progress
-   or /save-state to update the continuity ledger.
+💡 Consider running /handoff to save detailed progress.
+   (Ledger is auto-updated by hooks)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "
 fi
@@ -133,7 +133,7 @@ Tests failed: $TESTS_FAILED
 
 Consider documenting the issue before ending:
 - /handoff to create a detailed handoff
-- /save-state to update ledger with current status
+(Ledger auto-updated by hooks - no need for /save-state)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "
     fi

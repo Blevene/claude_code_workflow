@@ -152,7 +152,7 @@ Available commands:
   /status         - Check workflow status
 
 Continuity tips:
-  - Use /save-state before /clear to preserve context
+  - Use /clear when context fills (ledger auto-saved)
   - Use /handoff when ending a session
   - Use /resume to continue from a handoff
 "

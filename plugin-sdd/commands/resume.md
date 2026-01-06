@@ -17,26 +17,21 @@ description: Resume work from the latest handoff - loads context and continues
    - Load the full handoff document
    - Extract key sections: In Progress, Blocked, Next Steps
 
-3. **Check Current State**
+3. **Check Git Status**
    ```bash
    git status --short
    ```
 
-   If project has eval tools:
-   ```bash
-   test -f tools/run_evals.py && uv run python tools/run_evals.py --all 2>/dev/null
-   ```
+4. **Extract Status From Handoff**
+   - Eval status: Use the "Specs & Evals" section from handoff (don't re-run)
+   - Traceability: Use the "Traceability Update" section from handoff
+   - Important files: Check if files listed in handoff still exist
 
-   If project has traceability tools:
-   ```bash
-   test -f tools/traceability_tools.py && uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null
-   ```
+5. **If Files Changed Since Handoff**
+   - If `git status` shows modified files not in handoff, suggest: "Files changed - consider running `/eval` to verify"
+   - Don't auto-run evals - trust the handoff status unless code changed
 
-4. **Verify Files Still Exist**
-   - Check that "Important Files" from handoff exist
-   - Note any files that have changed since handoff
-
-5. **Present Resume Summary**
+6. **Present Resume Summary**
 
 ## Resume Summary Format
 
@@ -60,11 +55,12 @@ description: Resume work from the latest handoff - loads context and continues
 1. <From handoff recommendations>
 2. <Based on current state>
 
-## Quick Status
+## Status (from handoff)
 - Git: <clean/dirty with count>
-- Evals: <passing/failing count>
-- Traceability: <coverage %>
+- Evals: <from handoff - e.g. "8/10 passing">
+- Traceability: <from handoff>
 
+⚠️ If files changed since handoff, run /eval to verify
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Ready to continue. What would you like to work on?
 ```

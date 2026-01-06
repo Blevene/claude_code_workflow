@@ -56,21 +56,13 @@ Read the most recent plan:
 ls -t thoughts/shared/plans/*.json thoughts/shared/plans/*.md 2>/dev/null | grep -v "^\._" | head -1 | xargs cat
 ```
 
-### 4. Check Current State
+### 4. Check Git Status
 
 ```bash
 git status
 ```
 
-If eval tools exist in this project:
-```bash
-test -f tools/run_evals.py && uv run python tools/run_evals.py --all 2>/dev/null || echo "No evals configured"
-```
-
-If traceability tools exist:
-```bash
-test -f tools/traceability_tools.py && uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null || echo "No traceability configured"
-```
+**Note:** Eval and traceability status come from the handoff - don't re-run unless files changed since handoff.
 
 ### 5. Present Full Context
 
@@ -98,10 +90,11 @@ test -f tools/traceability_tools.py && uv run python tools/traceability_tools.py
 ---
 
 ## CURRENT STATE
-- Git: [status]
-- Evals: [pass/fail counts]
-- Traceability: [coverage]
+- Git: [status from git status command]
+- Evals: [from handoff - e.g. "8/10 passing"]
+- Traceability: [from handoff]
 
+⚠️ If files changed since handoff, run /eval to verify
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Ready with full context. Continue where you left off.
 ```
@@ -119,7 +112,7 @@ Ready with full context. Continue where you left off.
 
 - `/resume` - Standard resume (reads handoff, presents summary)
 - `/status` - Quick workflow status check
-- `/save-state` - Save current state before clearing
+- `/handoff` - Create detailed session handoff
 
 $ARGUMENTS
 

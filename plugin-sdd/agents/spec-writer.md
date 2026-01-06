@@ -298,5 +298,5 @@ Report to @orchestrator:
 If context is above 70%, suggest:
 ```
 ⚠️ Context at [X]%. Recommend completing current spec file,
-then /save-state and /clear before writing more specs.
+then /clear before writing more specs (ledger auto-saved).
 ```

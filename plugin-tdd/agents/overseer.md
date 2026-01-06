@@ -194,7 +194,7 @@ Report to @orchestrator:
 If context is above 70%:
 ```
 ⚠️ Context at [X]%. Recommend completing current requirement review,
-updating traceability, then /save-state and /clear.
+updating traceability, then /clear (ledger auto-saved).
 ```
 
 ### Continuity-Specific Checks

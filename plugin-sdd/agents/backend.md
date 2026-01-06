@@ -259,7 +259,7 @@ Report to @orchestrator:
 If context is above 70%, suggest:
 ```
 ⚠️ Context at [X]%. Recommend completing current implementation file,
-running evals to verify, then /save-state and /clear before continuing.
+running evals to verify, then /clear before continuing (ledger auto-saved).
 ```
 
 ### If Implementation Spans Multiple Sessions

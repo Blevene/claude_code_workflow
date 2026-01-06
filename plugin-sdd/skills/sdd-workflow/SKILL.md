@@ -1,6 +1,6 @@
 ---
 name: sdd-workflow
-description: Spec-Driven Development workflow coordination. Auto-triggers for PRD processing, spec-to-implementation cycles, multi-agent handoffs, or session continuity (/save-state, /handoff, /resume). Coordinates @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, @spec-writer, @overseer agents.
+description: Spec-Driven Development workflow coordination. Auto-triggers for PRD processing, spec-to-implementation cycles, multi-agent handoffs, or session continuity (/handoff, /resume). Coordinates @orchestrator, @pm, @planner, @architect, @ux, @frontend, @backend, @spec-writer, @overseer agents.
 ---
 
 # Spec-Driven Development Workflow + Continuity
@@ -131,15 +131,15 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 |-------|--------|
 | **< 60%** | Normal work |
 | **60-70%** | Plan handoff points |
-| **70-80%** | Complete task, /save-state, /clear soon |
-| **> 80%** | STOP - /save-state then /clear NOW |
+| **70-80%** | Complete task, /clear soon |
+| **> 80%** | STOP - /clear NOW (ledger auto-saved) |
 
 ### Continuity Commands
 
 | Command | When |
 |---------|------|
-| `/save-state` | Before /clear - updates ledger |
 | `/handoff` | End of session - detailed transfer doc |
+| `/clear` | Fresh context (ledger auto-updated by hooks) |
 | `/resume` | Start of session - load handoff |
 
 ### Key Files
@@ -162,7 +162,7 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 3. **Evals validate behavior** - Not implementation details
 4. **Traceability** - Everything links to REQ-* and SPEC-* IDs
 5. **Loop prevention** - Escalate after 2-3 bounces
-6. **Context management** - /save-state before /clear
+6. **Context management** - /clear when needed (ledger auto-saved)
 7. **Python environment** - Always use `uv run` for Python/pytest
 
 ## Python Environment (CRITICAL)
@@ -209,8 +209,7 @@ Context compaction degrades agent quality. After 2-3 compactions, agents halluci
 /debug module-name
 
 # Before context fills (70%+)
-/save-state
-/clear
+/clear  # Ledger auto-saved by hooks
 
 # Pre-PR check
 /pre-review

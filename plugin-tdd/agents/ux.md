@@ -181,7 +181,7 @@ Report to @orchestrator:
 If context is above 70%:
 ```
 ⚠️ Context at [X]%. Recommend completing current screen/flow,
-saving UX spec, then /save-state and /clear.
+saving UX spec, then /clear (ledger auto-saved).
 ```
 
 ### If UX Work Spans Multiple Sessions

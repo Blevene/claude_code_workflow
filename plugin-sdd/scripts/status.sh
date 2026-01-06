@@ -141,7 +141,7 @@ if [[ "$context_pct" -ge 80 ]]; then
     [[ -n "$git_info" ]] && output="$output | $git_info"
     [[ -n "$now_focus" ]] && output="$output | $now_focus"
     # Add urgent reminder
-    output="$output | \033[31m/save-state NOW\033[0m"
+    output="$output | \033[31m/clear NOW\033[0m"
 elif [[ "$context_pct" -ge 60 ]]; then
     # WARNING - Yellow context
     ctx_display="\033[33m${token_display} ${context_pct}%\033[0m"

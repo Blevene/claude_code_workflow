@@ -321,5 +321,5 @@ Report to @orchestrator:
 If context is above 70%, suggest:
 ```
 ⚠️ Context at [X]%. Recommend completing current test file,
-then /save-state and /clear before writing more tests.
+then /clear before writing more tests (ledger auto-saved).
 ```

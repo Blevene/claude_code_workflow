@@ -17,15 +17,13 @@ Use this when:
 
 ### 1. Load Full Ledger
 
+Read the most recent ledger file:
+
 ```bash
-# Find and read the full ledger
-LEDGER=$(ls -t thoughts/ledgers/CONTINUITY_*.md 2>/dev/null | grep -v "^._" | head -1)
-if [ -n "$LEDGER" ]; then
-    cat "$LEDGER"
-fi
+ls -t thoughts/ledgers/CONTINUITY_*.md 2>/dev/null | grep -v "^\._" | head -1 | xargs cat
 ```
 
-Read and present the ENTIRE ledger content including:
+Present the ENTIRE ledger content including:
 - Goal
 - Current Phase
 - Completed items
@@ -35,15 +33,13 @@ Read and present the ENTIRE ledger content including:
 
 ### 2. Load Full Handoff
 
+Read the most recent handoff file:
+
 ```bash
-# Find and read the full handoff (exclude macOS ._ files)
-HANDOFF=$(find thoughts/shared/handoffs -name "*.md" -type f ! -name "._*" 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
-if [ -n "$HANDOFF" ]; then
-    cat "$HANDOFF"
-fi
+find thoughts/shared/handoffs -name "*.md" -type f 2>/dev/null | xargs ls -t 2>/dev/null | grep -v "/\._" | head -1 | xargs cat
 ```
 
-Read and present the ENTIRE handoff content including:
+Present the ENTIRE handoff content including:
 - Current State
 - What Was Done
 - What Worked / What Failed
@@ -54,24 +50,23 @@ Read and present the ENTIRE handoff content including:
 
 ### 3. Load Full Plan (if exists)
 
+Read the most recent plan:
+
 ```bash
-# Find active plan
-PLAN=$(ls -t thoughts/shared/plans/*.json thoughts/shared/plans/*.md 2>/dev/null | grep -v "^._" | head -1)
-if [ -n "$PLAN" ]; then
-    cat "$PLAN"
-fi
+ls -t thoughts/shared/plans/*.json thoughts/shared/plans/*.md 2>/dev/null | grep -v "^\._" | head -1 | xargs cat
 ```
 
 ### 4. Check Current State
 
 ```bash
-# Git status
 git status
+```
 
-# Run evals
-uv run python tools/run_evals.py --all 2>/dev/null || echo "Evals need setup"
+```bash
+uv run python tools/run_evals.py --all 2>/dev/null || echo "Evals not configured"
+```
 
-# Check traceability
+```bash
 uv run python tools/traceability_tools.py check-gaps traceability_matrix.json 2>/dev/null || true
 ```
 

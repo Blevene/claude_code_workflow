@@ -4,7 +4,7 @@
 
 A Claude Code plugin system that enforces disciplined development through coordinated multi-agent teams, with session continuity to prevent context degradation.
 
-[![Version](https://img.shields.io/badge/version-2.4.0-blue.svg)](https://github.com/blevene/claude_code_workflow)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](https://github.com/blevene/claude_code_workflow)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -168,19 +168,27 @@ For system-wide hooks that run for all projects:
 
 ```bash
 # Create directories
-mkdir -p ~/.claude/{hooks,skills,agents,commands,schemas,templates,guides}
+mkdir -p ~/.claude/{hooks,skills,agents,commands,schemas,templates,guides,rules,logs}
 
 # Copy SDD components
 cp plugin-sdd/hooks/*.sh ~/.claude/hooks/
 cp -r plugin-sdd/skills/* ~/.claude/skills/
 cp -r plugin-sdd/agents/* ~/.claude/agents/
 cp -r plugin-sdd/commands/* ~/.claude/commands/
+cp -r plugin-sdd/rules/* ~/.claude/rules/
 
 # Make hooks executable
 chmod +x ~/.claude/hooks/*.sh
 ```
 
-Then add to `~/.claude/settings.json`:
+Then copy the settings template to `~/.claude/settings.json`:
+
+```bash
+# Copy settings template (or merge with existing settings)
+cp plugin-sdd/settings-template.json ~/.claude/settings.json
+```
+
+Or manually add to `~/.claude/settings.json`:
 
 ```json
 {
@@ -189,6 +197,7 @@ Then add to `~/.claude/settings.json`:
     "command": "$HOME/.claude/scripts/status.sh"
   },
   "hooks": {
+    "PreToolUse": [{ "matcher": "Bash|bash|Write|Edit|str_replace_editor", "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/pre-tool-use.sh", "timeout": 5 }] }],
     "SessionStart": [{ "matcher": "startup|resume|compact|clear", "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/session-start.sh", "timeout": 30 }] }],
     "PreCompact": [{ "matcher": "auto|manual", "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/pre-compact.sh", "timeout": 30 }] }],
     "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "$HOME/.claude/hooks/user-prompt-submit.sh", "timeout": 10 }] }],
@@ -331,7 +340,7 @@ Spec-Driven Development: Write behavioral specs and evals BEFORE implementation.
 | **Skills** | 14 | sdd-workflow, code-review, debugging, git-workflow, refactoring, api-design, security-review, documentation, database, onboarding, recall-reasoning, validate-implementation, validate-hooks, **parallel-agents** |
 | **Commands** | 19 | /init, /prd, /design, /review-design, /plan-sprint, /ux-spec, /spec, /implement, /eval, /debug, /pre-review, /save-state, /handoff, /resume, **/resume-full**, /status, /check, /commit, /describe-pr |
 | **Hooks** | 8 | **PreToolUse** (security), SessionStart, PreCompact, UserPromptSubmit, PostToolUse, SubagentStop, SessionEnd, Stop |
-| **Rules** | 4 | continuity, agent-orchestration, observe-before-editing, idempotent-operations |
+| **Rules** | 6 | continuity, agent-orchestration, observe-before-editing, idempotent-operations, **agent-safety**, **loop-prevention** |
 | **Schemas** | 4 | traceability_matrix, planner_task, spec_schema, eval_result_schema |
 | **Scripts** | 5 | init-project.sh, status.sh, **generate-reasoning.sh**, **aggregate-reasoning.sh**, **search-reasoning.sh** |
 
@@ -473,7 +482,7 @@ plugin-sdd/
 | `artifact_index.py` | `uv run python tools/artifact_index.py --all` | Index handoffs, specs, plans for recall |
 | `artifact_query.py` | `uv run python tools/artifact_query.py "<query>"` | Search past work for precedent |
 
-### Rules (v2.3.0+)
+### Rules (v2.3.0+, updated v2.5.0)
 
 Rules are markdown files that guide Claude's behavior. They're loaded automatically based on glob patterns in their frontmatter.
 
@@ -483,6 +492,8 @@ Rules are markdown files that guide Claude's behavior. They're loaded automatica
 | **agent-orchestration.md** | `**/*.md`, `**/*.py`, `**/*.ts` | When to spawn subagents vs work directly |
 | **observe-before-editing.md** | `**/*` | Check outputs before editing code to fix bugs |
 | **idempotent-operations.md** | `**/*.sh`, `**/*.py`, `hooks/**/*` | Make operations safe to repeat |
+| **agent-safety.md** | `**/*` | Security guardrails for subagents with `dontAsk` mode |
+| **loop-prevention.md** | `**/*.py`, `**/*.ts`, `**/*.tsx` | Stop repeating failing actions, escalate when stuck |
 
 **Key concepts from rules:**
 
@@ -634,24 +645,25 @@ The SDD plugin uses two trigger mechanisms:
 │                              HOOK LIFECYCLE                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  SessionStart ──▶ UserPromptSubmit ──▶ PostToolUse ──▶ SubagentStop        │
+│  SessionStart ──▶ UserPromptSubmit ──▶ PreToolUse ──▶ PostToolUse          │
 │       │                  │                  │               │               │
 │       ▼                  ▼                  ▼               ▼               │
-│  Load ledger       Context check      Track edits      Create handoff      │
-│  Load handoff      Skill hints        Loop detection   Update ledger       │
-│  Prune old entries Build/test track                                         │
+│  Load ledger       Context check      SECURITY       Track edits           │
+│  Load handoff      Skill hints        Block danger   Loop detection        │
+│  Prune old entries                    (subagents)    Build/test track      │
 │                                                                             │
-│  PreCompact (before context compaction)                                     │
-│       │                                                                     │
-│       ▼                                                                     │
-│  Auto-save state, warn about degradation                                    │
+│  SubagentStop (agent completes)       PreCompact (before compaction)       │
+│       │                                    │                                │
+│       ▼                                    ▼                                │
+│  Create handoff                       Auto-save state                       │
+│  Update ledger                        Warn about degradation                │
 │                                                                             │
-│  SessionEnd (after session completes)     Stop (main agent finishes)       │
-│       │                                        │                            │
-│       ▼                                        ▼                            │
-│  Cleanup old cache files                  Session summary                   │
-│  Remove stale handoffs                    Prompt for handoff                │
-│  Update ledger timestamp                  Show test results                 │
+│  SessionEnd (session completes)       Stop (main agent finishes)           │
+│       │                                    │                                │
+│       ▼                                    ▼                                │
+│  Cleanup old cache files              Session summary                       │
+│  Remove stale handoffs                Prompt for handoff                    │
+│  Update ledger timestamp              Show test results                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -718,22 +730,28 @@ The status line writes context percentage to `/tmp/claude-context-pct-$SESSION_I
 
 | Hook | When | What It Does |
 |------|------|--------------|
+| **PreToolUse** | Before tool execution | **Security guardrails** - blocks dangerous commands for subagents |
 | **SessionStart** | `/clear`, startup, resume | Loads ledger + handoff (light on startup, full on resume), prunes old entries |
 | **PreCompact** | Before compaction | Creates auto-handoff + ledger update, blocks manual compact |
 | **UserPromptSubmit** | Every message | Context warnings, **priority-based skill activation** via `skill-rules.json` |
-| **PostToolUse** | After file edits/reads | Tracks modified files, **loop detection**, **build/test tracking** |
+| **PostToolUse** | After file edits/reads | Tracks modified files, **loop detection** (subagents only), **build/test tracking** |
 | **SubagentStop** | Agent completes | Creates task handoff + ledger update |
 | **SessionEnd** | Session completes | Cleanup old cache files (>7 days), remove stale handoffs (>30 days), update ledger |
 | **Stop** | Main agent finishes | Session summary (files modified, test results), prompts for handoff/save-state |
 
-### Loop Detection (v2.2.0+)
+### Loop Detection (v2.2.0+, updated v2.5.0)
 
-The PostToolUse hook now detects when agents are stuck in repetitive patterns:
+The PostToolUse hook detects when agents are stuck in repetitive patterns. **As of v2.5.0, loop detection only runs for subagents/automated contexts** - interactive sessions have human oversight.
+
+| Context | Loop Detection |
+|---------|----------------|
+| Interactive (permission_mode: default) | ❌ Off - human oversight |
+| Subagent (permission_mode: dontAsk) | ✅ On - automated protection |
 
 | Threshold | Action |
 |-----------|--------|
-| 3 ops on same file | ⚠️ Warning injected into context |
-| 5 ops on same file | 🚨 Operation blocked, agent must change approach |
+| 5 ops on same file | ⚠️ Warning injected into context |
+| 8 ops on same file | 🚨 Operation blocked, agent must change approach |
 
 **Common loop causes and fixes:**
 
@@ -745,6 +763,32 @@ The PostToolUse hook now detects when agents are stuck in repetitive patterns:
 | Same error after fix | Wrong file being modified | Check actual error source |
 
 When agents detect they're stuck, they should escalate to `@orchestrator` with a structured report instead of retrying.
+
+### Security Guardrails (v2.5.0+)
+
+All subagents run with `permissionMode: dontAsk` for efficiency. A **PreToolUse hook** enforces tiered security guardrails to protect against dangerous operations. Inspired by [danielmiessler/Personal_AI_Infrastructure](https://github.com/danielmiessler/Personal_AI_Infrastructure).
+
+| Tier | Category | Action | Examples |
+|------|----------|--------|----------|
+| 1 | CATASTROPHIC | 🚫 Block | `rm -rf /`, `mkfs`, `dd of=/dev/sda` |
+| 2 | REVERSE_SHELL | 🚫 Block | `bash -i >& /dev/tcp`, `nc -e /bin/sh` |
+| 3 | RCE | 🚫 Block | `curl \| bash`, `base64 -d \| sh` |
+| 4 | PROMPT_INJECTION | 🚫 Block | "ignore previous instructions", `[INST]` |
+| 5 | EXFILTRATION | 🚫 Block | `curl --upload-file`, `tar \| curl` |
+| 6 | CREDENTIAL_ACCESS | 🚫 Block | `echo $OPENAI_KEY`, `cat .env` |
+| 7 | GIT_DANGEROUS | 🚫 Block | `git push --force main` |
+| 8 | PRIVILEGE_ESCALATION | 🚫 Block | `sudo su`, `chmod 777` |
+| 9 | SYSTEM_MOD | ⚠️ Log | `systemctl stop`, general `sudo` |
+| 10 | WORKFLOW_PROTECTION | 🚫 Block | `rm .claude`, `rm thoughts/` |
+
+**File write protection** blocks writes to:
+- System paths: `/etc/`, `/usr/`, `/bin/`, `/boot/`
+- Credentials: `~/.ssh/`, `~/.aws/`, `*.pem`, `id_rsa`
+- Secrets: `.env`, `credentials`, `secrets.yml`
+
+Security events are logged to `.claude/logs/security-events.log`.
+
+See `rules/agent-safety.md` for full documentation.
 
 ### Build/Test Tracking (v2.3.0+)
 
@@ -1101,6 +1145,17 @@ echo '{"source":"clear"}' | plugin-sdd/hooks/session-start.sh
 ---
 
 ## Changelog
+
+### v2.5.0 (January 2026)
+
+- **Subagent security guardrails**: New PreToolUse hook with tiered security (10 categories) blocks dangerous commands
+- **Subagent efficiency**: All 9 agents now use `permissionMode: dontAsk` for faster execution
+- **Loop detection scoping**: Loop detection now only runs for subagents, not interactive sessions
+- **New rules**: `agent-safety.md` (security documentation), `loop-prevention.md` (shared loop guidance)
+- **Security logging**: Blocked operations logged to `.claude/logs/security-events.log`
+- **Prompt injection defense**: Blocks LLM injection patterns (`[INST]`, "ignore previous instructions")
+- **Reverse shell protection**: Blocks common reverse shell patterns in bash commands
+- **Credential protection**: Blocks accidental API key exposure and `.env` file access
 
 ### v2.4.0 (January 2026)
 

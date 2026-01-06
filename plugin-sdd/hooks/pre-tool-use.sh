@@ -65,7 +65,7 @@ block_command() {
 
 # === BASH COMMAND SECURITY ===
 if [ "$TOOL_NAME" = "Bash" ] || [ "$TOOL_NAME" = "bash" ]; then
-    CMD=$(echo "$TOOL_INPUT" | jq -r '.command // ""' 2>/dev/null) || exit 0
+    CMD=$(echo "$TOOL_INPUT" | jq -r '.command // ""' 2>/dev/null) || CMD=""
     [ -z "$CMD" ] && exit 0
     
     # TIER 1: CATASTROPHIC - Always block
@@ -189,11 +189,14 @@ if [ "$TOOL_NAME" = "Bash" ] || [ "$TOOL_NAME" = "bash" ]; then
     if echo "$CMD" | grep -qEi 'rm.*thoughts'; then
         block_command "WORKFLOW_PROTECTION" "Attempt to delete thoughts directory" "$CMD"
     fi
+    
+    # All checks passed - allow the command
+    exit 0
 fi
 
 # === WRITE/EDIT SECURITY ===
 if [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "str_replace_editor" ]; then
-    FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.file_path // .path // ""' 2>/dev/null) || exit 0
+    FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.file_path // .path // ""' 2>/dev/null) || FILE_PATH=""
     
     # System paths - Block
     if echo "$FILE_PATH" | grep -qE '^/(etc|usr|bin|sbin|boot|root)/'; then
@@ -209,6 +212,9 @@ if [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "
     if echo "$FILE_PATH" | grep -qEi '(\.env$|\.env\.|credentials|secrets\.ya?ml)'; then
         block_command "WRITE_PROTECTION" "Secret file write" "$FILE_PATH"
     fi
+    
+    # All checks passed - allow the write
+    exit 0
 fi
 
 # All checks passed

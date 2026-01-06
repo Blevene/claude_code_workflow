@@ -27,16 +27,19 @@ Default base branch is `main` if not specified.
 
 ### Step 1: Gather Information
 
+Get current branch:
 ```bash
-# Get current branch
-CURRENT_BRANCH=$(git branch --show-current)
-BASE_BRANCH="${ARGUMENTS:-main}"
+git branch --show-current
+```
 
-# Get commit summary
-git log "$BASE_BRANCH"..HEAD --oneline
+Get commit summary (use `main` or specify base branch):
+```bash
+git log main..HEAD --oneline
+```
 
-# Get files changed
-git diff --stat "$BASE_BRANCH"..HEAD
+Get files changed:
+```bash
+git diff --stat main..HEAD
 ```
 
 ### Step 2: Aggregate Reasoning

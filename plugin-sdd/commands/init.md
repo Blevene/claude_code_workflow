@@ -73,18 +73,20 @@ uv sync
 ### 3. Create Traceability Matrix
 
 ```bash
-cat > traceability_matrix.json << EOF
+cat > traceability_matrix.json << 'EOF'
 {
   "meta": {
     "version": 1,
-    "project": "$(basename $(pwd))",
-    "created": "$(date -Iseconds)",
+    "project": "PROJECT_NAME",
+    "created": "TIMESTAMP",
     "description": "Traceability matrix linking EARS requirements to specs, evals, design, and code."
   },
   "requirements": []
 }
 EOF
 ```
+
+Update `PROJECT_NAME` and `TIMESTAMP` with actual values.
 
 ### 4. Update .gitignore
 

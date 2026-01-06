@@ -59,18 +59,13 @@ git commit -m "$ARGUMENTS"
 After successful commit, generate reasoning documentation:
 
 ```bash
-# Get the commit hash
-COMMIT_HASH=$(git rev-parse HEAD)
-
-# Generate reasoning from attempts
-$HOME/.claude/scripts/generate-reasoning.sh "$COMMIT_HASH" "$ARGUMENTS"
+git rev-parse HEAD | xargs -I {} $HOME/.claude/scripts/generate-reasoning.sh {} "$ARGUMENTS"
 ```
 
 Or if using plugin directory:
 
 ```bash
-COMMIT_HASH=$(git rev-parse HEAD)
-./plugin-sdd/scripts/generate-reasoning.sh "$COMMIT_HASH" "$ARGUMENTS"
+git rev-parse HEAD | xargs -I {} ./plugin-sdd/scripts/generate-reasoning.sh {} "$ARGUMENTS"
 ```
 
 ### Step 4: Report

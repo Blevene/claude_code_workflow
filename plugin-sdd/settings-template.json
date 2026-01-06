@@ -1,5 +1,8 @@
 {
-  "description": "SDD workflow lifecycle hooks for continuity management",
+  "statusLine": {
+    "type": "command",
+    "command": "$HOME/.claude/scripts/status.sh"
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -7,8 +10,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use.sh",
-            "timeout": 10
+            "command": "$HOME/.claude/hooks/pre-tool-use.sh",
+            "timeout": 5
           }
         ]
       }
@@ -19,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+            "command": "$HOME/.claude/hooks/session-start.sh",
             "timeout": 30
           }
         ]
@@ -31,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh",
+            "command": "$HOME/.claude/hooks/pre-compact.sh",
             "timeout": 30
           }
         ]
@@ -42,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.sh",
+            "command": "$HOME/.claude/hooks/user-prompt-submit.sh",
             "timeout": 10
           }
         ]
@@ -54,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use.sh",
+            "command": "$HOME/.claude/hooks/post-tool-use.sh",
             "timeout": 10
           }
         ]
@@ -65,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop.sh",
+            "command": "$HOME/.claude/hooks/subagent-stop.sh",
             "timeout": 15
           }
         ]
@@ -76,7 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-end.sh",
+            "command": "$HOME/.claude/hooks/session-end.sh",
             "timeout": 15
           }
         ]
@@ -87,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop.sh",
+            "command": "$HOME/.claude/hooks/stop.sh",
             "timeout": 10
           }
         ]
@@ -95,3 +98,4 @@
     ]
   }
 }
+

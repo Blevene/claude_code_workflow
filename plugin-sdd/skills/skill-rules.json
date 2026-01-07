@@ -184,6 +184,24 @@
           "both.*agents"
         ]
       }
+    },
+    "adk-development": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": ["adk", "agent development kit", "llm agent", "multi-agent", "agent tool", "session", "artifact", "grounding", "vertex ai search"],
+        "intentPatterns": [
+          "build.*agent",
+          "create.*adk",
+          "multi.*agent.*system",
+          "agent.*tool",
+          "session.*management",
+          "artifact.*management",
+          "evaluate.*agent",
+          "deploy.*agent"
+        ]
+      }
     }
   },
   "agents": {

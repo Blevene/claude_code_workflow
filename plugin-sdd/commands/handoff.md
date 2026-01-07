@@ -22,6 +22,7 @@ session_id: <session-id>
 created: <ISO-timestamp>
 phase: <SDD-phase>
 outcome: <SUCCEEDED|PARTIAL|IN_PROGRESS>
+git_commit: <current HEAD SHA - run `git rev-parse HEAD`>
 ---
 
 # Session Handoff
@@ -114,13 +115,14 @@ Evals passing: 8/10
 
 ## How To Create
 
-1. Review session history (files modified, decisions made)
-2. Check git status for uncommitted changes
-3. Check traceability matrix for coverage
-4. Run evals to capture current state
-5. Document any partial work with exact file:line refs
-6. List learnings (what worked, what didn't)
-7. Provide clear next steps
+1. **Capture git commit** - Run `git rev-parse HEAD` for the `git_commit` field
+2. Review session history (files modified, decisions made)
+3. Check git status for uncommitted changes
+4. Check traceability matrix for coverage
+5. Run evals to capture current state
+6. Document any partial work with exact file:line refs
+7. List learnings (what worked, what didn't)
+8. Provide clear next steps
 
 ## After Creating
 

@@ -56,13 +56,24 @@ Read the most recent plan:
 ls -t thoughts/shared/plans/*.json thoughts/shared/plans/*.md 2>/dev/null | grep -v "^\._" | head -1 | xargs cat
 ```
 
-### 4. Check Git Status
+### 4. Check For Code Changes Since Handoff
 
 ```bash
+# Check uncommitted changes
 git status
+
+# Check commits since handoff (extract git_commit from handoff frontmatter)
+# If handoff has git_commit field, compare:
+git log <handoff_commit>..HEAD --oneline
 ```
 
-**Note:** Eval and traceability status come from the handoff - don't re-run unless files changed since handoff.
+**CRITICAL: DO NOT RUN EVALS. Use status from handoff.**
+
+Eval/Traceability status comes from handoff. Mark as STALE if:
+- `git status` shows changes, OR
+- `git log <handoff_commit>..HEAD` shows new commits
+
+**Even if code changed, do not automatically run evals.** Only suggest that the user can run `/eval` if they want to verify.
 
 ### 5. Present Full Context
 
@@ -91,10 +102,12 @@ git status
 
 ## CURRENT STATE
 - Git: [status from git status command]
-- Evals: [from handoff - e.g. "8/10 passing"]
+- Evals: [from handoff - e.g. "8/10 passing"] [STALE if code changed]
 - Traceability: [from handoff]
+- Commits since handoff: [count or "none"]
 
-⚠️ If files changed since handoff, run /eval to verify
+[If code changed since handoff]:
+⚠️ CODE CHANGED - eval status may be stale. User can run `/eval` to verify if needed.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Ready with full context. Continue where you left off.
 ```
